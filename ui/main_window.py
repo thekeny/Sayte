@@ -45,7 +45,7 @@ class Sayte(QWidget):
         ))
         self.recordButton.clicked.connect(self.toggleRecording)
         self.notesList.itemClicked.connect(self.showNote)
-        self.recordingWindow = RecordingWindow()
+        self.recordingWindow = RecordingWindow(self.recorder)
         self.recordingWindow.stopRequested.connect(self.toggleRecording)
         self.tray = Tray(self)
         if QSystemTrayIcon.isSystemTrayAvailable():
@@ -179,7 +179,8 @@ class Sayte(QWidget):
             return
 
         self.pendingText = ""
-        self.setState("idle", "Заметка сохранена")
+        self.setState("idle", "Запись сохранена")
+        self.recordingWindow.hideTimer.start(1000)
         try:
             self.loadNotes(noteId)
         except sqlite3.Error as error:

@@ -9,6 +9,7 @@ class Recorder:
         self.stream = None
         self.frames = []
         self.error = ""
+        self.level = 0.0
 
     def start(self):
         if self.stream is not None:
@@ -16,6 +17,7 @@ class Recorder:
 
         self.frames = []
         self.error = ""
+        self.level = 0.0
         self.stream = sd.InputStream(
             samplerate=config.SAMPLE_RATE, channels=1, dtype="float32",
             callback=self.recordAudio
@@ -30,6 +32,7 @@ class Recorder:
         if status:
             self.error = str(status)
         self.frames.append(data[:, 0].copy())
+        self.level = float(np.sqrt(np.mean(data[:, 0] ** 2)))
 
     def stop(self):
         try:
@@ -46,6 +49,7 @@ class Recorder:
         return np.concatenate(frames)
 
     def close(self):
+        self.level = 0.0
         if self.stream is not None:
             stream = self.stream
             self.stream = None

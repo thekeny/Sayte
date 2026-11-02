@@ -50,7 +50,13 @@ class Whisper:
                 path, device="cpu", compute_type="int8", local_files_only=True
             )
 
-        segments, info = self.model.transcribe(audio, vad_filter=True)
+        _, _, probabilities = self.model.detect_language(audio=audio)
+        languages = {language: probability for language, probability
+                     in probabilities if language in ("ru", "en")}
+        language = max(languages, key=languages.get) if languages else "ru"
+        segments, info = self.model.transcribe(
+            audio, language=language, vad_filter=True
+        )
         return " ".join(
             segment.text.strip() for segment in segments
             if segment.text.strip()
