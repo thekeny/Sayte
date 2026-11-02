@@ -2,7 +2,7 @@ import sqlite3
 from pathlib import Path
 
 from PyQt6 import uic
-from PyQt6.QtCore import Qt, QTimer, QSize
+from PyQt6.QtCore import QEvent, Qt, QTimer, QSize
 from PyQt6.QtGui import QIcon, QPixmap
 from PyQt6.QtWidgets import QApplication, QListWidgetItem, QMessageBox
 from PyQt6.QtWidgets import QSystemTrayIcon, QWidget
@@ -14,6 +14,7 @@ from audio.recorder import Recorder
 from database.database import Database
 from database.notes import Notes
 from database.settings import Settings
+from database.tags import Tags
 from transcription.whisper import Whisper
 from transcription.worker import TranscriptionWorker
 from ui.recording_window import RecordingWindow
@@ -27,6 +28,7 @@ class Sayte(QWidget):
         super().__init__()
         self.database = Database()
         self.notes = Notes(self.database)
+        self.tags = Tags(self.database)
         self.settings = Settings(self.database)
         self.shortcut = self.settings.getHotkey()
         self.recorder = Recorder()
@@ -50,6 +52,7 @@ class Sayte(QWidget):
             Qt.TransformationMode.SmoothTransformation
         ))
         self.recordButton.clicked.connect(self.toggleRecording)
+        self.recordButton.installEventFilter(self)
         self.settingsButton.clicked.connect(self.openSettings)
         self.settingsButton.setIcon(
             QIcon(str(config.BASE_DIR / "images" / "settings.svg"))
@@ -58,6 +61,7 @@ class Sayte(QWidget):
         self.updateHotkeyHint()
         self.notesList.itemClicked.connect(self.showNote)
         self.searchInput.textChanged.connect(self.searchNotes)
+        self.tagFilter.currentIndexChanged.connect(self.searchNotes)
         self.recordingWindow = RecordingWindow(self.recorder)
         self.recordingWindow.stopRequested.connect(self.toggleRecording)
         self.tray = Tray(self)
@@ -66,11 +70,33 @@ class Sayte(QWidget):
         else:
             self.statusLabel.setText("Системный трей недоступен")
 
+    def eventFilter(self, watched, event):
+        if (watched is self.recordButton
+                and event.type() in (QEvent.Type.KeyPress, QEvent.Type.KeyRelease)
+                and event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter)):
+            return True
+        return super().eventFilter(watched, event)
+
     def loadNotes(self, selectedId=None):
+        selectedTag = self.tagFilter.currentData()
+        self.tagFilter.blockSignals(True)
+        self.tagFilter.clear()
+        self.tagFilter.addItem("Все теги", None)
+        for tag in self.tags.getTags():
+            self.tagFilter.addItem(tag["name"], tag["id"])
+        index = self.tagFilter.findData(selectedTag)
+        self.tagFilter.setCurrentIndex(max(index, 0))
+        self.tagFilter.blockSignals(False)
+        selectedTag = self.tagFilter.currentData()
         rows = self.notes.getNotes()
         query = self.searchInput.text().strip().casefold()
         rows = [row for row in rows if query in row["title"].casefold()
                 or query in row["current_text"].casefold()]
+        noteTags = {row["id"]: self.tags.getNoteTags(row["id"]) for row in rows}
+        if selectedTag is not None:
+            rows = [row for row in rows if any(
+                tag["id"] == selectedTag for tag in noteTags[row["id"]]
+            )]
         self.notesList.clear()
         selected = None
         for row in rows:
@@ -78,7 +104,7 @@ class Sayte(QWidget):
             preview = row["current_text"].splitlines()[0][:120]
             item = QListWidgetItem()
             item.setData(Qt.ItemDataRole.UserRole, row["id"])
-            item.setSizeHint(QSize(0, 88))
+            item.setSizeHint(QSize(0, 108 if noteTags[row["id"]] else 88))
             self.notesList.addItem(item)
             card = QWidget()
             layout = QVBoxLayout(card)
@@ -90,6 +116,13 @@ class Sayte(QWidget):
             previewLabel.setStyleSheet("color: #666666;")
             layout.addWidget(titleLabel)
             layout.addWidget(previewLabel)
+            if noteTags[row["id"]]:
+                tagsLabel = QLabel(", ".join(
+                    tag["name"] for tag in noteTags[row["id"]]
+                ))
+                tagsLabel.setTextFormat(Qt.TextFormat.PlainText)
+                tagsLabel.setStyleSheet("color: #777777;")
+                layout.addWidget(tagsLabel)
             card.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
             self.notesList.setItemWidget(item, card)
             if row["id"] == selectedId:
@@ -99,7 +132,7 @@ class Sayte(QWidget):
         elif rows:
             self.notesList.setCurrentRow(0)
         self.emptyLabel.setText(
-            "Ничего не найдено." if query
+            "Ничего не найдено." if query or selectedTag is not None
             else "Заметок пока нет. Начните запись."
         )
         self.emptyLabel.setVisible(not rows)
@@ -119,7 +152,11 @@ class Sayte(QWidget):
             self.showError(f"Не удалось открыть заметку: {error}")
             return
         if note is not None:
-            dialog = NoteWindow(self.notes, note, self)
+            try:
+                dialog = NoteWindow(self.notes, note, self)
+            except sqlite3.Error as error:
+                self.showError(f"Не удалось загрузить теги: {error}")
+                return
             self.activeEditor = dialog
             try:
                 result = dialog.exec()

@@ -10,6 +10,7 @@ class Database:
         path.parent.mkdir(parents=True, exist_ok=True)
         self.connection = sqlite3.connect(path)
         self.connection.row_factory = sqlite3.Row
+        self.connection.execute("PRAGMA foreign_keys = ON")
         try:
             with self.connection:
                 self.connection.execute("""
@@ -20,6 +21,19 @@ class Database:
                         current_text TEXT NOT NULL,
                         created_at TEXT NOT NULL,
                         updated_at TEXT NOT NULL
+                    )
+                """)
+                self.connection.execute("""
+                    CREATE TABLE IF NOT EXISTS tags (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        name TEXT NOT NULL UNIQUE
+                    )
+                """)
+                self.connection.execute("""
+                    CREATE TABLE IF NOT EXISTS note_tags (
+                        note_id INTEGER NOT NULL REFERENCES notes(id) ON DELETE CASCADE,
+                        tag_id INTEGER NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
+                        PRIMARY KEY (note_id, tag_id)
                     )
                 """)
                 self.connection.execute("""

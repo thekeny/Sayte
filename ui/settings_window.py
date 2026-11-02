@@ -1,7 +1,7 @@
 import sqlite3
 
 from PyQt6.QtCore import QEvent, Qt
-from PyQt6.QtWidgets import QDialog, QDialogButtonBox, QLabel, QLineEdit
+from PyQt6.QtWidgets import QDialog, QDialogButtonBox, QHBoxLayout, QLabel, QLineEdit
 from PyQt6.QtWidgets import QPushButton, QVBoxLayout
 from PyQt6.QtWidgets import QMessageBox
 
@@ -75,11 +75,8 @@ class SettingsWindow(QDialog):
         self.assignButton = QPushButton("Назначить сочетание", self)
         self.assignButton.clicked.connect(self.assignHotkey)
         layout.addWidget(self.assignButton)
-        hint = QLabel("Например: ctrl+alt+r или ctrl+shift+9", self)
-        layout.addWidget(hint)
-        self.resetButton = QPushButton("По умолчанию", self)
+        self.resetButton = QPushButton("Сбросить", self)
         self.resetButton.clicked.connect(self.resetSettings)
-        layout.addWidget(self.resetButton)
         self.buttons = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Save
             | QDialogButtonBox.StandardButton.Cancel, self
@@ -92,7 +89,10 @@ class SettingsWindow(QDialog):
         )
         self.buttons.accepted.connect(self.saveSettings)
         self.buttons.rejected.connect(self.reject)
-        layout.addWidget(self.buttons)
+        buttonsLayout = QHBoxLayout()
+        buttonsLayout.addWidget(self.resetButton)
+        buttonsLayout.addWidget(self.buttons)
+        layout.addLayout(buttonsLayout)
 
     def assignHotkey(self):
         hotkey = self.window.hotkey
@@ -111,7 +111,13 @@ class SettingsWindow(QDialog):
                     QMessageBox.warning(self, "Горячая клавиша", str(error))
 
     def resetSettings(self):
-        self.hotkeyInput.setText(config.HOTKEY)
+        answer = QMessageBox.question(
+            self, "Сброс настроек", "Вернуть горячую клавишу по умолчанию?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No
+        )
+        if answer == QMessageBox.StandardButton.Yes:
+            self.hotkeyInput.setText(config.HOTKEY)
 
     def saveSettings(self):
         shortcut = self.hotkeyInput.text().replace(" ", "").lower()

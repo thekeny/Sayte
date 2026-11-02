@@ -36,7 +36,7 @@ class Notes:
         with self.connection:
             self.connection.execute("DELETE FROM notes WHERE id = ?", (noteId,))
 
-    def updateNote(self, noteId, text):
+    def updateNote(self, noteId, text, tags=None, tagNames=None):
         text = text.strip()
         if not text:
             raise ValueError("Нельзя сохранить пустую заметку")
@@ -47,3 +47,5 @@ class Notes:
                 WHERE id = ?""",
                 (text.splitlines()[0][:60], text, date, noteId)
             )
+            if tags is not None:
+                tags.setNoteTags(noteId, tagNames)

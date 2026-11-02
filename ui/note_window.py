@@ -4,8 +4,8 @@ from pathlib import Path
 
 from PyQt6.QtCore import QSize
 from PyQt6.QtGui import QIcon, QTextCursor
-from PyQt6.QtWidgets import QDialog, QFileDialog, QHBoxLayout, QMessageBox
-from PyQt6.QtWidgets import QLabel, QPushButton, QTextEdit, QVBoxLayout
+from PyQt6.QtWidgets import QDialog, QFileDialog, QGridLayout, QHBoxLayout, QMessageBox
+from PyQt6.QtWidgets import QLabel, QLineEdit, QPushButton, QTextEdit, QVBoxLayout
 from sounddevice import PortAudioError
 
 import config
@@ -18,6 +18,11 @@ class NoteWindow(QDialog):
         self.notes = notes
         self.noteId = note["id"]
         self.originalText = note["current_text"]
+        self.tags = parent.tags
+        self.originalTags = [
+            tag["name"] for tag in self.tags.getNoteTags(self.noteId)
+        ]
+        self.currentTags = self.originalTags.copy()
         self.window = parent
         self.recording = False
         self.worker = None
@@ -28,6 +33,13 @@ class NoteWindow(QDialog):
         self.editor.setAcceptRichText(False)
         self.editor.setPlainText(note["current_text"])
         layout.addWidget(self.editor)
+        self.tagInput = QLineEdit(self)
+        self.tagInput.setPlaceholderText("Введите тег и нажмите Enter")
+        self.tagInput.returnPressed.connect(self.addTags)
+        layout.addWidget(self.tagInput)
+        self.tagsLayout = QGridLayout()
+        layout.addLayout(self.tagsLayout)
+        self.updateTagChips()
         self.voiceStatus = QLabel(self)
         self.voiceStatus.setWordWrap(True)
         layout.addWidget(self.voiceStatus)
@@ -56,6 +68,9 @@ class NoteWindow(QDialog):
         self.exportButton = QPushButton("Экспорт в TXT", self)
         self.saveButton = QPushButton("Сохранить", self)
         self.cancelButton = QPushButton("Отмена", self)
+        for button in (self.voiceButton, self.deleteButton, self.exportButton,
+                       self.saveButton, self.cancelButton):
+            button.setAutoDefault(False)
         buttons.addWidget(self.exportButton)
         buttons.addStretch()
         buttons.addWidget(self.saveButton)
@@ -65,6 +80,41 @@ class NoteWindow(QDialog):
         self.saveButton.clicked.connect(self.saveChanges)
         self.cancelButton.clicked.connect(self.reject)
 
+    def tagNames(self):
+        return list(dict.fromkeys(
+            self.currentTags + [name.strip() for name in
+                                self.tagInput.text().split(",") if name.strip()]
+        ))
+
+    def addTags(self):
+        self.currentTags = self.tagNames()
+        self.tagInput.clear()
+        self.updateTagChips()
+
+    def removeTag(self, name):
+        self.currentTags.remove(name)
+        self.updateTagChips()
+
+    def updateTagChips(self):
+        while self.tagsLayout.count():
+            self.tagsLayout.takeAt(0).widget().deleteLater()
+        for index, name in enumerate(self.currentTags):
+            chip = QPushButton(f"{name}  ×", self)
+            chip.setAutoDefault(False)
+            chip.setToolTip(f"Удалить тег «{name}»")
+            chip.setAccessibleName(f"Удалить тег {name}")
+            chip.setStyleSheet(
+                "QPushButton { background: #eeeeee; border: 1px solid #cccccc; "
+                "border-radius: 12px; padding: 4px 10px; text-align: left; }"
+                "QPushButton:hover { background: #dddddd; }"
+            )
+            chip.clicked.connect(lambda checked, tag=name: self.removeTag(tag))
+            self.tagsLayout.addWidget(chip, index // 3, index % 3)
+
+    def hasChanges(self):
+        return (self.editor.toPlainText() != self.originalText
+                or set(self.tagNames()) != set(self.originalTags))
+
     def reject(self):
         if self.recording or self.worker is not None:
             QMessageBox.warning(
@@ -72,7 +122,7 @@ class NoteWindow(QDialog):
                 "Остановите запись и дождитесь распознавания перед закрытием."
             )
             return
-        if self.editor.toPlainText() != self.originalText:
+        if self.hasChanges():
             message = QMessageBox(self)
             message.setWindowTitle("Несохранённые изменения")
             message.setText("В заметке есть несохранённые изменения.")
@@ -98,7 +148,9 @@ class NoteWindow(QDialog):
         if self.recording or self.worker is not None:
             return
         try:
-            self.notes.updateNote(self.noteId, self.editor.toPlainText())
+            self.notes.updateNote(
+                self.noteId, self.editor.toPlainText(), self.tags, self.tagNames()
+            )
         except (sqlite3.Error, ValueError) as error:
             QMessageBox.warning(self, "Сохранение", str(error))
             return
@@ -108,7 +160,7 @@ class NoteWindow(QDialog):
         if self.recording or self.worker is not None:
             return
         message = "Удалить заметку?"
-        if self.editor.toPlainText() != self.originalText:
+        if self.hasChanges():
             message += "\nНесохранённые изменения будут потеряны."
         answer = QMessageBox.question(
             self, "Удаление заметки", message,
