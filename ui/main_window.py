@@ -57,6 +57,7 @@ class Sayte(QWidget):
         self.settingsButton.setIconSize(QSize(22, 22))
         self.updateHotkeyHint()
         self.notesList.itemClicked.connect(self.showNote)
+        self.searchInput.textChanged.connect(self.searchNotes)
         self.recordingWindow = RecordingWindow(self.recorder)
         self.recordingWindow.stopRequested.connect(self.toggleRecording)
         self.tray = Tray(self)
@@ -67,6 +68,9 @@ class Sayte(QWidget):
 
     def loadNotes(self, selectedId=None):
         rows = self.notes.getNotes()
+        query = self.searchInput.text().strip().casefold()
+        rows = [row for row in rows if query in row["title"].casefold()
+                or query in row["current_text"].casefold()]
         self.notesList.clear()
         selected = None
         for row in rows:
@@ -94,7 +98,17 @@ class Sayte(QWidget):
             self.notesList.setCurrentItem(selected)
         elif rows:
             self.notesList.setCurrentRow(0)
+        self.emptyLabel.setText(
+            "Ничего не найдено." if query
+            else "Заметок пока нет. Начните запись."
+        )
         self.emptyLabel.setVisible(not rows)
+
+    def searchNotes(self):
+        try:
+            self.loadNotes()
+        except sqlite3.Error as error:
+            self.showError(f"Не удалось выполнить поиск: {error}")
 
     def showNote(self, current):
         try:

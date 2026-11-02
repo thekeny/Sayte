@@ -43,6 +43,16 @@ class NoteWindow(QDialog):
         self.voiceButton.setCheckable(True)
         self.voiceButton.clicked.connect(self.toggleRecording)
         buttons.addWidget(self.voiceButton)
+        self.deleteButton = QPushButton(self)
+        self.deleteButton.setFixedSize(36, 36)
+        self.deleteButton.setIcon(
+            QIcon(str(config.BASE_DIR / "images" / "trash.svg"))
+        )
+        self.deleteButton.setIconSize(QSize(22, 22))
+        self.deleteButton.setToolTip("Удалить заметку")
+        self.deleteButton.setAccessibleName("Удалить заметку")
+        self.deleteButton.clicked.connect(self.deleteNote)
+        buttons.addWidget(self.deleteButton)
         self.exportButton = QPushButton("Экспорт в TXT", self)
         self.saveButton = QPushButton("Сохранить", self)
         self.cancelButton = QPushButton("Отмена", self)
@@ -94,6 +104,26 @@ class NoteWindow(QDialog):
             return
         self.accept()
 
+    def deleteNote(self):
+        if self.recording or self.worker is not None:
+            return
+        message = "Удалить заметку?"
+        if self.editor.toPlainText() != self.originalText:
+            message += "\nНесохранённые изменения будут потеряны."
+        answer = QMessageBox.question(
+            self, "Удаление заметки", message,
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No
+        )
+        if answer != QMessageBox.StandardButton.Yes:
+            return
+        try:
+            self.notes.deleteNote(self.noteId)
+        except sqlite3.Error as error:
+            QMessageBox.warning(self, "Удаление заметки", str(error))
+            return
+        self.accept()
+
     def toggleRecording(self):
         if self.worker is not None:
             return
@@ -117,6 +147,7 @@ class NoteWindow(QDialog):
         self.voiceStatus.setText("Идёт запись. Нажмите микрофон ещё раз.")
         self.saveButton.setEnabled(False)
         self.cancelButton.setEnabled(False)
+        self.deleteButton.setEnabled(False)
 
     def stopRecording(self):
         self.recording = False
@@ -171,6 +202,7 @@ class NoteWindow(QDialog):
         self.voiceButton.setToolTip("Досказать заметку")
         self.saveButton.setEnabled(True)
         self.cancelButton.setEnabled(True)
+        self.deleteButton.setEnabled(True)
 
     def exportText(self):
         name = re.sub(r"[<>:\"/\\|?*\x00-\x1f]", "_", self.windowTitle())

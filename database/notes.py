@@ -32,6 +32,10 @@ class Notes:
             "SELECT * FROM notes WHERE id = ?", (noteId,)
         ).fetchone()
 
+    def deleteNote(self, noteId):
+        with self.connection:
+            self.connection.execute("DELETE FROM notes WHERE id = ?", (noteId,))
+
     def updateNote(self, noteId, text):
         text = text.strip()
         if not text:
