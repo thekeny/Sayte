@@ -28,8 +28,9 @@ if __name__ == "__main__":
         window.startHotkey()
     except (OSError, ImportError, ValueError) as error:
         QMessageBox.warning(
-            window, "Горячая клавиша",
-            f"Не удалось включить {window.shortcut}: {error}"
+            window,
+            "Горячая клавиша",
+            f"Не удалось включить {window.shortcut}: {error}",
         )
     app.aboutToQuit.connect(
         lambda: window.hotkey.stop() if window.hotkey is not None else None

@@ -33,12 +33,14 @@ class ProviderWindow(QDialog):
     def storeFields(self):
         if self.current < 0:
             return
-        self.profiles[self.current].update({
-            "name": self.nameInput.text().strip(),
-            "url": self.urlInput.text().strip().rstrip("/"),
-            "api_key": self.keyInput.text().strip(),
-            "model": modelId(self.modelCombo)
-        })
+        self.profiles[self.current].update(
+            {
+                "name": self.nameInput.text().strip(),
+                "url": self.urlInput.text().strip().rstrip("/"),
+                "api_key": self.keyInput.text().strip(),
+                "model": modelId(self.modelCombo),
+            }
+        )
         self.profileCombo.setItemText(
             self.current, self.profiles[self.current]["name"]
         )
@@ -81,8 +83,14 @@ class ProviderWindow(QDialog):
 
     def addProfile(self):
         self.storeFields()
-        profile = {"id": uuid4().hex, "name": "Новое подключение",
-                   "kind": "custom", "url": "", "api_key": "", "model": ""}
+        profile = {
+            "id": uuid4().hex,
+            "name": "Новое подключение",
+            "kind": "custom",
+            "url": "",
+            "api_key": "",
+            "model": "",
+        }
         self.profiles.append(profile)
         self.reloadProfiles(profile["id"])
         self.nameInput.setFocus()
@@ -92,9 +100,11 @@ class ProviderWindow(QDialog):
         if self.current < 0:
             return
         answer = QMessageBox.question(
-            self, "Подключения ИИ", "Удалить выбранное подключение?",
+            self,
+            "Подключения ИИ",
+            "Удалить выбранное подключение?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No
+            QMessageBox.StandardButton.No,
         )
         if answer == QMessageBox.StandardButton.Yes:
             self.profiles.pop(self.current)
@@ -121,13 +131,17 @@ class ProviderWindow(QDialog):
     def showModels(self, models):
         selected = modelId(self.modelCombo)
         fillModels(self.modelCombo, models, selected)
-        self.statusLabel.setText(
-            f"Моделей: {len(models)}"
-        )
+        self.statusLabel.setText(f"Моделей: {len(models)}")
 
     def setBusy(self, busy):
-        for widget in (self.fields, self.profileCombo, self.addButton,
-                       self.saveButton, self.cancelButton, self.deleteButton):
+        for widget in (
+            self.fields,
+            self.profileCombo,
+            self.addButton,
+            self.saveButton,
+            self.cancelButton,
+            self.deleteButton,
+        ):
             widget.setEnabled(not busy)
 
     def finishRequest(self):

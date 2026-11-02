@@ -15,7 +15,10 @@ class HotkeyFilter(QAbstractNativeEventFilter):
     def nativeEventFilter(self, eventType, message):
         if eventType in (b"windows_generic_MSG", b"windows_dispatcher_MSG"):
             msg = MSG.from_address(int(message))
-            if msg.message == config.HOTKEY_MESSAGE and msg.wParam == self.hotkey.id:
+            if (
+                msg.message == config.HOTKEY_MESSAGE
+                and msg.wParam == self.hotkey.id
+            ):
                 self.hotkey.activated.emit()
                 return True, 0
         return False, 0

@@ -17,7 +17,7 @@ from database.providers import Providers
 from database.settings import Settings
 from database.tags import Tags
 from transcription.whisper import Whisper
-from transcription.worker import TranscriptionWorker
+from audio.session import RecordingSession
 from ui.recording_window import RecordingWindow
 from ui.note_window import NoteWindow
 from ui.settings_window import SettingsWindow
@@ -36,6 +36,7 @@ class Sayte(QWidget):
         self.shortcut = self.settings.getHotkey()
         self.recorder = Recorder()
         self.whisper = Whisper()
+        self.session = RecordingSession(self.recorder, self.whisper, self)
         self.worker = None
         self.hotkey = None
         self.activeEditor = None
@@ -66,9 +67,11 @@ class Sayte(QWidget):
             self.statusLabel.setText("Системный трей недоступен")
 
     def eventFilter(self, watched, event):
-        if (watched is self.recordButton
-                and event.type() in (QEvent.Type.KeyPress, QEvent.Type.KeyRelease)
-                and event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter)):
+        if (
+            watched is self.recordButton
+            and event.type() in (QEvent.Type.KeyPress, QEvent.Type.KeyRelease)
+            and event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter)
+        ):
             return True
         return super().eventFilter(watched, event)
 
@@ -85,30 +88,43 @@ class Sayte(QWidget):
         selectedTag = self.tagFilter.currentData()
         rows = self.notes.getNotes()
         query = self.searchInput.text().strip().casefold()
-        rows = [row for row in rows if query in row["title"].casefold()
-                or query in row["current_text"].casefold()]
-        noteTags = {row["id"]: self.tags.getNoteTags(row["id"]) for row in rows}
+        rows = [
+            row
+            for row in rows
+            if query in row["title"].casefold()
+            or query in row["current_text"].casefold()
+        ]
+        noteTags = {
+            row["id"]: self.tags.getNoteTags(row["id"]) for row in rows
+        }
         if selectedTag is not None:
-            rows = [row for row in rows if any(
-                tag["id"] == selectedTag for tag in noteTags[row["id"]]
-            )]
+            rows = [
+                row
+                for row in rows
+                if any(tag["id"] == selectedTag for tag in noteTags[row["id"]])
+            ]
         self.notesList.clear()
         selected = None
         for row in rows:
             title = row["title"]
-            preview = row["current_text"].splitlines()[0][:config.PREVIEW_LENGTH]
+            preview = row["current_text"].splitlines()[0][
+                : config.PREVIEW_LENGTH
+            ]
             item = QListWidgetItem()
             item.setData(Qt.ItemDataRole.UserRole, row["id"])
-            height = (config.TAGGED_NOTE_HEIGHT if noteTags[row["id"]]
-                      else config.NOTE_HEIGHT)
+            height = (
+                config.TAGGED_NOTE_HEIGHT
+                if noteTags[row["id"]]
+                else config.NOTE_HEIGHT
+            )
             item.setSizeHint(QSize(0, height))
             self.notesList.addItem(item)
             card = uic.loadUi(config.NOTE_CARD_UI_PATH)
             card.titleLabel.setText(title)
             card.previewLabel.setText(preview)
-            card.tagsLabel.setText(", ".join(
-                tag["name"] for tag in noteTags[row["id"]]
-            ))
+            card.tagsLabel.setText(
+                ", ".join(tag["name"] for tag in noteTags[row["id"]])
+            )
             card.tagsLabel.setVisible(bool(noteTags[row["id"]]))
             card.pinLabel.setPixmap(
                 QIcon(config.PINNED_ICON_PATH).pixmap(20, 20)
@@ -123,7 +139,8 @@ class Sayte(QWidget):
         elif rows:
             self.notesList.setCurrentRow(0)
         self.emptyLabel.setText(
-            "Ничего не найдено." if query or selectedTag is not None
+            "Ничего не найдено."
+            if query or selectedTag is not None
             else "Заметок пока нет. Начните запись."
         )
         self.emptyLabel.setVisible(not rows)
@@ -136,9 +153,7 @@ class Sayte(QWidget):
 
     def showNote(self, current):
         try:
-            note = self.notes.getNote(
-                current.data(Qt.ItemDataRole.UserRole)
-            )
+            note = self.notes.getNote(current.data(Qt.ItemDataRole.UserRole))
         except sqlite3.Error as error:
             self.showError(f"Не удалось открыть заметку: {error}")
             return
@@ -182,11 +197,16 @@ class Sayte(QWidget):
     def applySettings(self, shortcut):
         parts = shortcut.split("+")
         modifiers = parts[:-1]
-        if (not modifiers or len(set(modifiers)) != len(modifiers)
-                or any(key not in ("ctrl", "alt", "shift", "win")
-                       for key in modifiers)
-                or len(parts[-1]) != 1 or not parts[-1].isascii()
-                or not parts[-1].isalnum()):
+        if (
+            not modifiers
+            or len(set(modifiers)) != len(modifiers)
+            or any(
+                key not in ("ctrl", "alt", "shift", "win") for key in modifiers
+            )
+            or len(parts[-1]) != 1
+            or not parts[-1].isascii()
+            or not parts[-1].isalnum()
+        ):
             raise ValueError(
                 "Используйте Ctrl, Alt, Shift или Win и букву A–Z / цифру 0–9."
             )
@@ -224,8 +244,11 @@ class Sayte(QWidget):
         self.recordingWindow.setState(state, text)
 
     def toggleRecording(self):
-        if (self.activeEditor is not None and self.state == "idle"
-                and self.worker is None):
+        if (
+            self.activeEditor is not None
+            and self.state == "idle"
+            and self.worker is None
+        ):
             self.activeEditor.toggleRecording()
             return
         if self.worker is not None or self.exitAfterSave:
@@ -238,7 +261,7 @@ class Sayte(QWidget):
             self.stopRecording()
             return
         try:
-            self.recorder.start()
+            self.session.startRecording(self)
         except (OSError, RuntimeError, ValueError, PortAudioError) as error:
             self.showError(f"Не удалось включить микрофон: {error}")
             return
@@ -248,7 +271,7 @@ class Sayte(QWidget):
 
     def stopRecording(self):
         try:
-            audio = self.recorder.stop()
+            audio = self.session.stopRecording(self)
         except (OSError, RuntimeError, ValueError, PortAudioError) as error:
             self.exitAfterSave = False
             self.setState("idle", "Запись не удалась")
@@ -260,12 +283,14 @@ class Sayte(QWidget):
             return
 
         self.setState("processing", config.PROCESSING_TEXT)
-        self.worker = TranscriptionWorker(self.whisper, audio, self)
-        self.worker.status.connect(self.processingStatus)
-        self.worker.result.connect(self.processText)
-        self.worker.error.connect(self.transcriptionError)
-        self.worker.finished.connect(self.finishProcessing)
-        self.worker.start()
+        self.worker = self.session.transcribe(
+            self,
+            audio,
+            self.processText,
+            self.transcriptionError,
+            self.finishProcessing,
+            self.processingStatus,
+        )
 
     def processingStatus(self, text):
         self.setState("processing", text)
@@ -304,7 +329,6 @@ class Sayte(QWidget):
         self.showError(f"Не удалось распознать речь: {message}")
 
     def finishProcessing(self):
-        self.worker.deleteLater()
         self.worker = None
         if self.exitAfterSave:
             QTimer.singleShot(0, self.requestExit)
@@ -332,11 +356,12 @@ class Sayte(QWidget):
             if self.exitAfterSave:
                 return
             answer = QMessageBox.question(
-                self, "Выход из Sayte",
+                self,
+                "Выход из Sayte",
                 "Дождаться сохранения заметки и выйти?\n"
                 "«Нет» — продолжить работу.",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No
+                QMessageBox.StandardButton.No,
             )
             if answer != QMessageBox.StandardButton.Yes:
                 return

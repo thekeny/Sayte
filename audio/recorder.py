@@ -19,8 +19,10 @@ class Recorder:
         self.error = ""
         self.level = 0.0
         self.stream = sd.InputStream(
-            samplerate=config.SAMPLE_RATE, channels=1, dtype="float32",
-            callback=self.recordAudio
+            samplerate=config.SAMPLE_RATE,
+            channels=1,
+            dtype="float32",
+            callback=self.recordAudio,
         )
         try:
             self.stream.start()

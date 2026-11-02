@@ -15,7 +15,7 @@ class Settings:
         with self.connection:
             self.connection.execute(
                 "INSERT OR REPLACE INTO settings VALUES (?, ?)",
-                ("theme", theme)
+                ("theme", theme),
             )
 
     def getHotkey(self):
@@ -28,5 +28,5 @@ class Settings:
         with self.connection:
             self.connection.execute(
                 "INSERT OR REPLACE INTO settings (name, value) VALUES (?, ?)",
-                ("hotkey", shortcut)
+                ("hotkey", shortcut),
             )

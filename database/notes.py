@@ -12,14 +12,14 @@ class Notes:
         if not text:
             raise ValueError("Нельзя сохранить пустую заметку")
 
-        title = text.splitlines()[0][:config.TITLE_LENGTH]
+        title = text.splitlines()[0][: config.TITLE_LENGTH]
         date = datetime.now().isoformat(timespec="seconds")
         with self.connection:
             cursor = self.connection.execute(
                 """INSERT INTO notes
                 (title, original_text, current_text, created_at, updated_at)
                 VALUES (?, ?, ?, ?, ?)""",
-                (title, text, text, date, date)
+                (title, text, text, date, date),
             )
         return cursor.lastrowid
 
@@ -33,7 +33,7 @@ class Notes:
         with self.connection:
             self.connection.execute(
                 "UPDATE notes SET is_pinned = ? WHERE id = ?",
-                (int(pinned), noteId)
+                (int(pinned), noteId),
             )
 
     def getNote(self, noteId):
@@ -43,7 +43,9 @@ class Notes:
 
     def deleteNote(self, noteId):
         with self.connection:
-            self.connection.execute("DELETE FROM notes WHERE id = ?", (noteId,))
+            self.connection.execute(
+                "DELETE FROM notes WHERE id = ?", (noteId,)
+            )
 
     def updateNote(self, noteId, text, tags=None, tagNames=None, pinned=None):
         text = text.strip()
@@ -54,12 +56,17 @@ class Notes:
             self.connection.execute(
                 """UPDATE notes SET title = ?, current_text = ?, updated_at = ?
                 WHERE id = ?""",
-                (text.splitlines()[0][:config.TITLE_LENGTH], text, date, noteId)
+                (
+                    text.splitlines()[0][: config.TITLE_LENGTH],
+                    text,
+                    date,
+                    noteId,
+                ),
             )
             if pinned is not None:
                 self.connection.execute(
                     "UPDATE notes SET is_pinned = ? WHERE id = ?",
-                    (int(pinned), noteId)
+                    (int(pinned), noteId),
                 )
             if tags is not None:
                 tags.setNoteTags(noteId, tagNames)

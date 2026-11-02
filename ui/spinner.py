@@ -32,6 +32,7 @@ class Spinner(QWidget):
         pen.setCapStyle(Qt.PenCapStyle.RoundCap)
         painter.setPen(pen)
         side = min(self.width(), self.height()) - 6
-        rect = QRectF((self.width() - side) / 2,
-                      (self.height() - side) / 2, side, side)
+        rect = QRectF(
+            (self.width() - side) / 2, (self.height() - side) / 2, side, side
+        )
         painter.drawArc(rect, -self.angle * 16, config.SPINNER_ARC * 16)

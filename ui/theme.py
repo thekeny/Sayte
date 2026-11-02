@@ -7,7 +7,9 @@ import config
 def applyTheme(theme):
     app = QApplication.instance()
     app.setStyle("Fusion")
-    background, surface, text, muted, border, selected = config.THEME_COLORS[theme]
+    background, surface, text, muted, border, selected = config.THEME_COLORS[
+        theme
+    ]
     palette = QPalette()
     for role, color in (
         (QPalette.ColorRole.Window, background),
@@ -20,7 +22,7 @@ def applyTheme(theme):
         (QPalette.ColorRole.Highlight, selected),
         (QPalette.ColorRole.HighlightedText, text),
         (QPalette.ColorRole.ToolTipBase, surface),
-        (QPalette.ColorRole.ToolTipText, text)
+        (QPalette.ColorRole.ToolTipText, text),
     ):
         palette.setColor(role, QColor(color))
     app.setPalette(palette)

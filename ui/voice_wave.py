@@ -25,7 +25,12 @@ class VoiceWave(QWidget):
                 self.height() - config.WAVE_MIN_HEIGHT
             )
             painter.drawRoundedRect(
-                QRectF(index * step + 1, (self.height() - height) / 2,
-                       max(1, step - config.WAVE_BAR_GAP), height),
-                config.WAVE_RADIUS, config.WAVE_RADIUS
+                QRectF(
+                    index * step + 1,
+                    (self.height() - height) / 2,
+                    max(1, step - config.WAVE_BAR_GAP),
+                    height,
+                ),
+                config.WAVE_RADIUS,
+                config.WAVE_RADIUS,
             )

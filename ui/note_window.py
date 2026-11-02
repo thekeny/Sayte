@@ -8,7 +8,6 @@ from PyQt6.QtWidgets import QDialog, QFileDialog, QMessageBox
 from sounddevice import PortAudioError
 
 import config
-from transcription.worker import TranscriptionWorker
 from ui.preview_window import PreviewWindow
 
 
@@ -59,10 +58,16 @@ class NoteWindow(QDialog):
         self.pinButton.setAccessibleName(title)
 
     def tagNames(self):
-        return list(dict.fromkeys(
-            self.currentTags + [name.strip() for name in
-                                self.tagInput.text().split(",") if name.strip()]
-        ))
+        return list(
+            dict.fromkeys(
+                self.currentTags
+                + [
+                    name.strip()
+                    for name in self.tagInput.text().split(",")
+                    if name.strip()
+                ]
+            )
+        )
 
     def addTags(self):
         self.currentTags = self.tagNames()
@@ -85,9 +90,11 @@ class NoteWindow(QDialog):
             self.tagsLayout.addWidget(chip, index // 3, index % 3)
 
     def hasChanges(self):
-        return (self.editor.toPlainText() != self.originalText
-                or set(self.tagNames()) != set(self.originalTags)
-                or self.pinButton.isChecked() != self.originalPinned)
+        return (
+            self.editor.toPlainText() != self.originalText
+            or set(self.tagNames()) != set(self.originalTags)
+            or self.pinButton.isChecked() != self.originalPinned
+        )
 
     def reject(self):
         if self.aiDialog is not None:
@@ -97,8 +104,9 @@ class NoteWindow(QDialog):
             return
         if self.recording or self.worker is not None:
             QMessageBox.warning(
-                self, "Голосовая запись",
-                "Остановите запись и дождитесь распознавания перед закрытием."
+                self,
+                "Голосовая запись",
+                "Остановите запись и дождитесь распознавания перед закрытием.",
             )
             return
         if self.hasChanges():
@@ -128,8 +136,11 @@ class NoteWindow(QDialog):
             return
         try:
             self.notes.updateNote(
-                self.noteId, self.editor.toPlainText(), self.tags, self.tagNames(),
-                self.pinButton.isChecked()
+                self.noteId,
+                self.editor.toPlainText(),
+                self.tags,
+                self.tagNames(),
+                self.pinButton.isChecked(),
             )
         except (sqlite3.Error, ValueError) as error:
             QMessageBox.warning(self, "Сохранение", str(error))
@@ -143,9 +154,11 @@ class NoteWindow(QDialog):
         if self.hasChanges():
             message += "\nНесохранённые изменения будут потеряны."
         answer = QMessageBox.question(
-            self, "Удаление заметки", message,
+            self,
+            "Удаление заметки",
+            message,
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No
+            QMessageBox.StandardButton.No,
         )
         if answer != QMessageBox.StandardButton.Yes:
             return
@@ -165,13 +178,16 @@ class NoteWindow(QDialog):
         if self.recording:
             self.stopRecording()
             return
-        if (self.window is None or self.window.state != "idle"
-                or self.window.worker is not None):
+        if (
+            self.window is None
+            or self.window.state != "idle"
+            or self.window.worker is not None
+        ):
             self.voiceButton.setChecked(False)
             self.voiceStatus.setText("Дождитесь завершения текущей записи.")
             return
         try:
-            self.window.recorder.start()
+            self.window.session.startRecording(self)
         except (OSError, RuntimeError, ValueError, PortAudioError) as error:
             self.voiceButton.setChecked(False)
             self.voiceStatus.setText(f"Не удалось включить микрофон: {error}")
@@ -188,7 +204,7 @@ class NoteWindow(QDialog):
     def stopRecording(self):
         self.recording = False
         try:
-            audio = self.window.recorder.stop()
+            audio = self.window.session.stopRecording(self)
         except (OSError, RuntimeError, ValueError, PortAudioError) as error:
             self.voiceStatus.setText(f"Ошибка записи: {error}")
             self.finishRecording()
@@ -200,11 +216,14 @@ class NoteWindow(QDialog):
         self.voiceButton.setEnabled(False)
         self.voiceButton.setChecked(False)
         self.voiceStatus.setText("Распознавание речи…")
-        self.worker = TranscriptionWorker(self.window.whisper, audio, self)
-        self.worker.result.connect(self.appendText)
-        self.worker.error.connect(self.voiceError)
-        self.worker.finished.connect(self.finishRecording)
-        self.worker.start()
+        self.worker = self.window.session.transcribe(
+            self,
+            audio,
+            self.appendText,
+            self.voiceError,
+            self.finishRecording,
+            self.voiceStatus.setText,
+        )
 
     def appendText(self, text):
         text = text.strip()
@@ -229,7 +248,6 @@ class NoteWindow(QDialog):
 
     def finishRecording(self):
         if self.worker is not None:
-            self.worker.deleteLater()
             self.worker = None
         self.voiceButton.setEnabled(True)
         self.voiceButton.setChecked(False)
@@ -240,15 +258,21 @@ class NoteWindow(QDialog):
         self.aiButton.setEnabled(True)
 
     def openAi(self):
-        if self.recording or self.worker is not None or self.aiDialog is not None:
+        if (
+            self.recording
+            or self.worker is not None
+            or self.aiDialog is not None
+        ):
             return
         if not self.editor.toPlainText().strip():
             QMessageBox.warning(self, "Обработка ИИ", "Текст заметки пуст.")
             return
         try:
             dialog = PreviewWindow(
-                self.window.providers, self.window.presets,
-                self.editor.toPlainText(), self
+                self.window.providers,
+                self.window.presets,
+                self.editor.toPlainText(),
+                self,
             )
             self.aiDialog = dialog
             if dialog.exec() == QDialog.DialogCode.Accepted:
@@ -258,13 +282,15 @@ class NoteWindow(QDialog):
                 self.editor.setTextCursor(cursor)
                 self.voiceStatus.clear()
         except sqlite3.Error:
-            QMessageBox.warning(self, "Обработка ИИ", "Ошибка чтения базы данных.")
+            QMessageBox.warning(
+                self, "Обработка ИИ", "Ошибка чтения базы данных."
+            )
         finally:
             self.aiDialog = None
 
     def exportText(self):
         name = re.sub(r"[<>:\"/\\|?*\x00-\x1f]", "_", self.windowTitle())
-        name = name.rstrip(". ")[:config.TITLE_LENGTH] or "Заметка"
+        name = name.rstrip(". ")[: config.TITLE_LENGTH] or "Заметка"
         path, _ = QFileDialog.getSaveFileName(
             self, "Экспорт заметки", f"{name}.txt", "Текстовые файлы (*.txt)"
         )

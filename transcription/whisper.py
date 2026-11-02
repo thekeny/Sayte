@@ -21,8 +21,10 @@ class Whisper:
             cache = config.MODEL_CACHE_PATH
             try:
                 path = download_model(
-                    config.WHISPER_MODEL, cache_dir=cache,
-                    local_files_only=True, use_auth_token=False
+                    config.WHISPER_MODEL,
+                    cache_dir=cache,
+                    local_files_only=True,
+                    use_auth_token=False,
                 )
             except LocalEntryNotFoundError:
                 path = None
@@ -35,14 +37,13 @@ class Whisper:
                     status(config.MODEL_DOWNLOAD_TEXT)
                 try:
                     path = download_model(
-                        config.WHISPER_MODEL, cache_dir=cache,
-                        use_auth_token=False
+                        config.WHISPER_MODEL,
+                        cache_dir=cache,
+                        use_auth_token=False,
                     )
                 except Exception as error:
                     raise RuntimeError(
-                        "Не удалось скачать публичную модель Whisper. "
-                        "Токен и аккаунт не нужны. Проверьте подключение "
-                        "и доступ к huggingface.co, затем повторите запись.\n"
+                        "Не удалось скачать модель Whisper\n"
                         f"Подробности: {error}"
                     ) from error
 
@@ -53,13 +54,17 @@ class Whisper:
             )
 
         _, _, probabilities = self.model.detect_language(audio=audio)
-        languages = {language: probability for language, probability
-                     in probabilities if language in ("ru", "en")}
+        languages = {
+            language: probability
+            for language, probability in probabilities
+            if language in ("ru", "en")
+        }
         language = max(languages, key=languages.get) if languages else "ru"
         segments, info = self.model.transcribe(
             audio, language=language, vad_filter=True
         )
         return " ".join(
-            segment.text.strip() for segment in segments
+            segment.text.strip()
+            for segment in segments
             if segment.text.strip()
         )

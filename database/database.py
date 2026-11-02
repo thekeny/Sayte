@@ -30,8 +30,10 @@ class Database:
                 """)
                 self.connection.execute("""
                     CREATE TABLE IF NOT EXISTS note_tags (
-                        note_id INTEGER NOT NULL REFERENCES notes(id) ON DELETE CASCADE,
-                        tag_id INTEGER NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
+                        note_id INTEGER NOT NULL
+                            REFERENCES notes(id) ON DELETE CASCADE,
+                        tag_id INTEGER NOT NULL
+                            REFERENCES tags(id) ON DELETE CASCADE,
                         PRIMARY KEY (note_id, tag_id)
                     )
                 """)
@@ -68,18 +70,26 @@ class Database:
                     )
                 initialized = self.connection.execute(
                     "SELECT value FROM settings WHERE name = ?",
-                    ("ai_initialized",)
+                    ("ai_initialized",),
                 ).fetchone()
                 if initialized is None:
                     self.connection.execute(
                         "INSERT INTO ai_profiles VALUES (?, ?, ?, ?, ?, ?)",
-                        ("openrouter", "OpenRouter", "openrouter",
-                         config.OPENROUTER_URL, "", "")
+                        (
+                            "openrouter",
+                            "OpenRouter",
+                            "openrouter",
+                            config.OPENROUTER_URL,
+                            "",
+                            "",
+                        ),
                     )
                     self.connection.executemany(
                         "INSERT INTO settings (name, value) VALUES (?, ?)",
-                        [("ai_initialized", "1"),
-                         ("ai_active_profile", "openrouter")]
+                        [
+                            ("ai_initialized", "1"),
+                            ("ai_active_profile", "openrouter"),
+                        ],
                     )
         except sqlite3.Error:
             self.connection.close()

@@ -17,9 +17,12 @@ class Provider:
             headers["Authorization"] = f"Bearer {self.key}"
         try:
             response = requests.request(
-                method, self.url + endpoint, headers=headers,
-                json=payload, timeout=config.AI_TIMEOUT,
-                allow_redirects=False
+                method,
+                self.url + endpoint,
+                headers=headers,
+                json=payload,
+                timeout=config.AI_TIMEOUT,
+                allow_redirects=False,
             )
         except requests.Timeout:
             raise ValueError(config.AI_ERRORS["timeout"]) from None
@@ -27,10 +30,14 @@ class Provider:
             raise ValueError(config.AI_ERRORS["connection"]) from None
         with response:
             if not 200 <= response.status_code < 300:
-                raise ValueError(config.AI_HTTP_ERRORS.get(
-                    response.status_code,
-                    config.AI_ERRORS["http"].format(status=response.status_code)
-                ))
+                raise ValueError(
+                    config.AI_HTTP_ERRORS.get(
+                        response.status_code,
+                        config.AI_ERRORS["http"].format(
+                            status=response.status_code
+                        ),
+                    )
+                )
             try:
                 data = response.json()
             except ValueError:
@@ -52,24 +59,34 @@ class Provider:
                 modelId = row["id"].strip()
                 if modelId:
                     name = row.get("name")
-                    models[modelId] = (name if isinstance(name, str)
-                                       else modelId)
-        return [{"id": key, "name": value}
-                for key, value in sorted(models.items())]
+                    models[modelId] = (
+                        name if isinstance(name, str) else modelId
+                    )
+        return [
+            {"id": key, "name": value} for key, value in sorted(models.items())
+        ]
 
     def processText(self, model, prompt, text):
         if not model.strip() or not prompt.strip() or not text.strip():
             raise ValueError(config.AI_ERRORS["input"])
-        data = self.request("POST", "/chat/completions", {
-            "model": model.strip(),
-            "messages": [
-                {"role": "system", "content": config.AI_SYSTEM_PROMPT},
-                {"role": "user", "content": (
-                    f"Действие:\n{prompt.strip()}\n\nТекст заметки:\n{text}"
-                )}
-            ],
-            "stream": False
-        })
+        data = self.request(
+            "POST",
+            "/chat/completions",
+            {
+                "model": model.strip(),
+                "messages": [
+                    {"role": "system", "content": config.AI_SYSTEM_PROMPT},
+                    {
+                        "role": "user",
+                        "content": (
+                            f"Действие:\n{prompt.strip()}"
+                            f"\n\nТекст заметки:\n{text}"
+                        ),
+                    },
+                ],
+                "stream": False,
+            },
+        )
         try:
             text = data["choices"][0]["message"]["content"]
         except (KeyError, IndexError, TypeError):

@@ -3,9 +3,12 @@ class Presets:
         self.connection = database.connection
 
     def getPresets(self):
-        return [dict(row) for row in self.connection.execute(
-            "SELECT * FROM ai_presets ORDER BY id"
-        )]
+        return [
+            dict(row)
+            for row in self.connection.execute(
+                "SELECT * FROM ai_presets ORDER BY id"
+            )
+        ]
 
     def savePreset(self, presetId, name, prompt):
         name, prompt = name.strip(), prompt.strip()
@@ -15,12 +18,12 @@ class Presets:
             if presetId is None:
                 cursor = self.connection.execute(
                     "INSERT INTO ai_presets (name, prompt) VALUES (?, ?)",
-                    (name, prompt)
+                    (name, prompt),
                 )
                 return cursor.lastrowid
             self.connection.execute(
                 "UPDATE ai_presets SET name = ?, prompt = ? WHERE id = ?",
-                (name, prompt, presetId)
+                (name, prompt, presetId),
             )
         return presetId
 

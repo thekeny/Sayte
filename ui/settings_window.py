@@ -35,8 +35,11 @@ class HotkeyDialog(QDialog):
         if event.isAutoRepeat():
             return
         if event.key() in (
-            Qt.Key.Key_Control, Qt.Key.Key_Alt, Qt.Key.Key_Shift,
-            Qt.Key.Key_Meta, Qt.Key.Key_AltGr
+            Qt.Key.Key_Control,
+            Qt.Key.Key_Alt,
+            Qt.Key.Key_Shift,
+            Qt.Key.Key_Meta,
+            Qt.Key.Key_AltGr,
         ):
             return
         key = event.nativeVirtualKey() or event.key()
@@ -45,7 +48,7 @@ class HotkeyDialog(QDialog):
             (Qt.KeyboardModifier.ControlModifier, "ctrl"),
             (Qt.KeyboardModifier.AltModifier, "alt"),
             (Qt.KeyboardModifier.ShiftModifier, "shift"),
-            (Qt.KeyboardModifier.MetaModifier, "win")
+            (Qt.KeyboardModifier.MetaModifier, "win"),
         ):
             if event.modifiers() & flag:
                 modifiers.append(name)
@@ -114,9 +117,11 @@ class SettingsWindow(QDialog):
 
     def resetSettings(self):
         answer = QMessageBox.question(
-            self, "Сброс настроек", "Вернуть настройки по умолчанию?",
+            self,
+            "Сброс настроек",
+            "Вернуть настройки по умолчанию?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No
+            QMessageBox.StandardButton.No,
         )
         if answer == QMessageBox.StandardButton.Yes:
             self.hotkeyInput.setText(config.HOTKEY)
@@ -145,11 +150,16 @@ class SettingsWindow(QDialog):
                 lambda: setAutostart(oldCommand),
                 lambda: self.window.applySettings(previous),
                 lambda: self.window.settings.saveTheme(oldTheme),
-                lambda: applyTheme(oldTheme)
+                lambda: applyTheme(oldTheme),
             ):
                 try:
                     restore()
-                except (OSError, ImportError, ValueError, sqlite3.Error) as issue:
+                except (
+                    OSError,
+                    ImportError,
+                    ValueError,
+                    sqlite3.Error,
+                ) as issue:
                     QMessageBox.warning(self, "Восстановление", str(issue))
             QMessageBox.warning(self, "Настройки", str(error))
             return

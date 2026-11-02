@@ -18,14 +18,18 @@ def getCommand():
 
 def getAutostart():
     try:
-        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, config.AUTOSTART_KEY) as key:
+        with winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER, config.AUTOSTART_KEY
+        ) as key:
             return winreg.QueryValueEx(key, config.NAME)[0]
     except FileNotFoundError:
         return None
 
 
 def setAutostart(command):
-    with winreg.CreateKey(winreg.HKEY_CURRENT_USER, config.AUTOSTART_KEY) as key:
+    with winreg.CreateKey(
+        winreg.HKEY_CURRENT_USER, config.AUTOSTART_KEY
+    ) as key:
         if command is not None:
             winreg.SetValueEx(key, config.NAME, 0, winreg.REG_SZ, command)
         else:

@@ -51,8 +51,9 @@ class PresetWindow(QDialog):
         presetId = preset["id"] if preset else None
         try:
             presetId = self.presets.savePreset(
-                presetId, self.presetName.text(),
-                self.promptInput.toPlainText()
+                presetId,
+                self.presetName.text(),
+                self.promptInput.toPlainText(),
             )
             self.loadPresets(presetId)
         except (sqlite3.Error, ValueError) as error:
@@ -63,9 +64,11 @@ class PresetWindow(QDialog):
         if not preset or preset["id"] is None:
             return
         answer = QMessageBox.question(
-            self, "Режим обработки", "Удалить выбранный режим?",
+            self,
+            "Режим обработки",
+            "Удалить выбранный режим?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No
+            QMessageBox.StandardButton.No,
         )
         if answer != QMessageBox.StandardButton.Yes:
             return
@@ -74,4 +77,3 @@ class PresetWindow(QDialog):
             self.loadPresets()
         except sqlite3.Error:
             self.statusLabel.setText("Не удалось удалить режим из базы.")
-

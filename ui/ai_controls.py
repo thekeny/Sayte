@@ -4,8 +4,11 @@ import config
 
 
 def profileIcon(profile):
-    path = (config.OPENROUTER_ICON_PATH if profile["kind"] == "openrouter"
-            else config.CPU_ICON_PATH)
+    path = (
+        config.OPENROUTER_ICON_PATH
+        if profile["kind"] == "openrouter"
+        else config.CPU_ICON_PATH
+    )
     return QIcon(path)
 
 

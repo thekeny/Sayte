@@ -2,13 +2,12 @@ import sqlite3
 
 from PyQt6 import uic
 from PyQt6.QtGui import QIcon, QTextCursor
-from PyQt6.QtWidgets import QDialog, QMessageBox, QPushButton
+from PyQt6.QtWidgets import QDialog, QPushButton
 from sounddevice import PortAudioError
 
 import config
 from ai.presets import getBuiltinPresets
 from ai.worker import AiWorker
-from transcription.worker import TranscriptionWorker
 
 
 class PreviewWindow(QDialog):
@@ -59,13 +58,16 @@ class PreviewWindow(QDialog):
             return
         if self.presetCombo.currentData() is not None:
             return
-        if (self.window is None or self.window.state != "idle"
-                or self.window.worker is not None):
+        if (
+            self.window is None
+            or self.window.state != "idle"
+            or self.window.worker is not None
+        ):
             self.promptVoiceButton.setChecked(False)
             self.statusLabel.setText(config.PROMPT_VOICE_MESSAGES["busy"])
             return
         try:
-            self.window.recorder.start()
+            self.window.session.startRecording(self)
         except (OSError, RuntimeError, ValueError, PortAudioError) as error:
             self.promptVoiceButton.setChecked(False)
             self.statusLabel.setText(
@@ -91,10 +93,12 @@ class PreviewWindow(QDialog):
         self.recording = False
         self.promptVoiceButton.setChecked(False)
         try:
-            audio = self.window.recorder.stop()
+            audio = self.window.session.stopRecording(self)
         except (OSError, RuntimeError, ValueError, PortAudioError) as error:
             self.statusLabel.setText(
-                config.PROMPT_VOICE_MESSAGES["record_error"].format(error=error)
+                config.PROMPT_VOICE_MESSAGES["record_error"].format(
+                    error=error
+                )
             )
             self.finishRecording()
             return
@@ -104,12 +108,14 @@ class PreviewWindow(QDialog):
             return
         self.promptVoiceButton.setEnabled(False)
         self.statusLabel.setText(config.PROCESSING_TEXT)
-        self.voiceWorker = TranscriptionWorker(self.window.whisper, audio, self)
-        self.voiceWorker.status.connect(self.statusLabel.setText)
-        self.voiceWorker.result.connect(self.appendPrompt)
-        self.voiceWorker.error.connect(self.voiceError)
-        self.voiceWorker.finished.connect(self.finishRecording)
-        self.voiceWorker.start()
+        self.voiceWorker = self.window.session.transcribe(
+            self,
+            audio,
+            self.appendPrompt,
+            self.voiceError,
+            self.finishRecording,
+            self.statusLabel.setText,
+        )
 
     def appendPrompt(self, text):
         text = text.strip()
@@ -134,7 +140,6 @@ class PreviewWindow(QDialog):
 
     def finishRecording(self):
         if self.voiceWorker is not None:
-            self.voiceWorker.deleteLater()
             self.voiceWorker = None
         self.promptVoiceButton.setEnabled(True)
         self.promptVoiceButton.setChecked(False)
@@ -144,7 +149,9 @@ class PreviewWindow(QDialog):
     def currentProfile(self):
         activeId = self.providers.getActiveProfile()
         profiles = self.providers.getProfiles()
-        profile = next((row for row in profiles if row["id"] == activeId), None)
+        profile = next(
+            (row for row in profiles if row["id"] == activeId), None
+        )
         if profile is None or not profile["model"]:
             raise ValueError(
                 "Выберите подключение и модель в настройках → Подключения ИИ."
@@ -153,13 +160,18 @@ class PreviewWindow(QDialog):
         return profile
 
     def processText(self):
-        if (self.worker is not None or self.recording
-                or self.voiceWorker is not None):
+        if (
+            self.worker is not None
+            or self.recording
+            or self.voiceWorker is not None
+        ):
             return
         try:
             profile = self.currentProfile()
-            if (not profile["model"]
-                    or not self.promptInput.toPlainText().strip()):
+            if (
+                not profile["model"]
+                or not self.promptInput.toPlainText().strip()
+            ):
                 raise ValueError("Укажите модель и промпт.")
             if not self.text.strip():
                 raise ValueError("Текст заметки пуст.")
@@ -196,8 +208,10 @@ class PreviewWindow(QDialog):
 
     def updateApplyButton(self):
         self.applyButton.setEnabled(
-            self.worker is None and self.resultReady
-            and not self.recording and self.voiceWorker is None
+            self.worker is None
+            and self.resultReady
+            and not self.recording
+            and self.voiceWorker is None
             and bool(self.resultEditor.toPlainText().strip())
         )
 
@@ -210,9 +224,13 @@ class PreviewWindow(QDialog):
         self.updateApplyButton()
 
     def applyResult(self):
-        if (self.worker is None and not self.recording
-                and self.voiceWorker is None and self.resultReady
-                and self.resultEditor.toPlainText().strip()):
+        if (
+            self.worker is None
+            and not self.recording
+            and self.voiceWorker is None
+            and self.resultReady
+            and self.resultEditor.toPlainText().strip()
+        ):
             self.accept()
 
     def done(self, result):
