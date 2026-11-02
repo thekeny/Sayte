@@ -1,11 +1,10 @@
+import os
 import re
 import sqlite3
-from pathlib import Path
 
-from PyQt6.QtCore import QSize
+from PyQt6 import uic
 from PyQt6.QtGui import QIcon, QTextCursor
-from PyQt6.QtWidgets import QDialog, QFileDialog, QGridLayout, QHBoxLayout, QMessageBox
-from PyQt6.QtWidgets import QLabel, QLineEdit, QPushButton, QTextEdit, QVBoxLayout
+from PyQt6.QtWidgets import QDialog, QFileDialog, QMessageBox
 from sounddevice import PortAudioError
 
 import config
@@ -26,56 +25,18 @@ class NoteWindow(QDialog):
         self.window = parent
         self.recording = False
         self.worker = None
+        self.initUI()
         self.setWindowTitle(note["title"])
-        self.resize(550, 500)
-        layout = QVBoxLayout(self)
-        self.editor = QTextEdit(self)
-        self.editor.setAcceptRichText(False)
-        self.editor.setPlainText(note["current_text"])
-        layout.addWidget(self.editor)
-        self.tagInput = QLineEdit(self)
-        self.tagInput.setPlaceholderText("Введите тег и нажмите Enter")
+        self.editor.setPlainText(self.originalText)
+
+    def initUI(self):
+        uic.loadUi(config.NOTE_UI_PATH, self)
+        self.voiceButton.setIcon(QIcon(config.MICROPHONE_ICON_PATH))
+        self.deleteButton.setIcon(QIcon(config.TRASH_ICON_PATH))
         self.tagInput.returnPressed.connect(self.addTags)
-        layout.addWidget(self.tagInput)
-        self.tagsLayout = QGridLayout()
-        layout.addLayout(self.tagsLayout)
         self.updateTagChips()
-        self.voiceStatus = QLabel(self)
-        self.voiceStatus.setWordWrap(True)
-        layout.addWidget(self.voiceStatus)
-        buttons = QHBoxLayout()
-        self.voiceButton = QPushButton(self)
-        self.voiceButton.setFixedSize(36, 36)
-        self.voiceButton.setIcon(
-            QIcon(str(config.BASE_DIR / "images" / "microphone.svg"))
-        )
-        self.voiceButton.setIconSize(QSize(22, 22))
-        self.voiceButton.setToolTip("Досказать заметку")
-        self.voiceButton.setAccessibleName("Досказать заметку")
-        self.voiceButton.setCheckable(True)
         self.voiceButton.clicked.connect(self.toggleRecording)
-        buttons.addWidget(self.voiceButton)
-        self.deleteButton = QPushButton(self)
-        self.deleteButton.setFixedSize(36, 36)
-        self.deleteButton.setIcon(
-            QIcon(str(config.BASE_DIR / "images" / "trash.svg"))
-        )
-        self.deleteButton.setIconSize(QSize(22, 22))
-        self.deleteButton.setToolTip("Удалить заметку")
-        self.deleteButton.setAccessibleName("Удалить заметку")
         self.deleteButton.clicked.connect(self.deleteNote)
-        buttons.addWidget(self.deleteButton)
-        self.exportButton = QPushButton("Экспорт в TXT", self)
-        self.saveButton = QPushButton("Сохранить", self)
-        self.cancelButton = QPushButton("Отмена", self)
-        for button in (self.voiceButton, self.deleteButton, self.exportButton,
-                       self.saveButton, self.cancelButton):
-            button.setAutoDefault(False)
-        buttons.addWidget(self.exportButton)
-        buttons.addStretch()
-        buttons.addWidget(self.saveButton)
-        buttons.addWidget(self.cancelButton)
-        layout.addLayout(buttons)
         self.exportButton.clicked.connect(self.exportText)
         self.saveButton.clicked.connect(self.saveChanges)
         self.cancelButton.clicked.connect(self.reject)
@@ -99,15 +60,10 @@ class NoteWindow(QDialog):
         while self.tagsLayout.count():
             self.tagsLayout.takeAt(0).widget().deleteLater()
         for index, name in enumerate(self.currentTags):
-            chip = QPushButton(f"{name}  ×", self)
-            chip.setAutoDefault(False)
+            chip = uic.loadUi(config.TAG_CHIP_UI_PATH)
+            chip.setText(f"{name}  ×")
             chip.setToolTip(f"Удалить тег «{name}»")
             chip.setAccessibleName(f"Удалить тег {name}")
-            chip.setStyleSheet(
-                "QPushButton { background: #eeeeee; border: 1px solid #cccccc; "
-                "border-radius: 12px; padding: 4px 10px; text-align: left; }"
-                "QPushButton:hover { background: #dddddd; }"
-            )
             chip.clicked.connect(lambda checked, tag=name: self.removeTag(tag))
             self.tagsLayout.addWidget(chip, index // 3, index % 3)
 
@@ -258,15 +214,16 @@ class NoteWindow(QDialog):
 
     def exportText(self):
         name = re.sub(r"[<>:\"/\\|?*\x00-\x1f]", "_", self.windowTitle())
-        name = name.rstrip(". ")[:60] or "Заметка"
+        name = name.rstrip(". ")[:config.TITLE_LENGTH] or "Заметка"
         path, _ = QFileDialog.getSaveFileName(
             self, "Экспорт заметки", f"{name}.txt", "Текстовые файлы (*.txt)"
         )
         if not path:
             return
-        if not Path(path).suffix:
+        if not os.path.splitext(path)[1]:
             path += ".txt"
         try:
-            Path(path).write_text(self.editor.toPlainText(), encoding="utf-8")
+            with open(path, "w", encoding="utf-8") as file:
+                file.write(self.editor.toPlainText())
         except OSError as error:
             QMessageBox.warning(self, "Экспорт", str(error))

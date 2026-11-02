@@ -1,13 +1,12 @@
+import os
 import sqlite3
-from pathlib import Path
 
 import config
 
 
 class Database:
     def __init__(self, path=config.DB_PATH):
-        path = Path(path)
-        path.parent.mkdir(parents=True, exist_ok=True)
+        os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
         self.connection = sqlite3.connect(path)
         self.connection.row_factory = sqlite3.Row
         self.connection.execute("PRAGMA foreign_keys = ON")

@@ -1,9 +1,8 @@
 import sqlite3
 
+from PyQt6 import uic
 from PyQt6.QtCore import QEvent, Qt
-from PyQt6.QtWidgets import QDialog, QDialogButtonBox, QHBoxLayout, QLabel, QLineEdit
-from PyQt6.QtWidgets import QPushButton, QVBoxLayout
-from PyQt6.QtWidgets import QMessageBox
+from PyQt6.QtWidgets import QDialog, QMessageBox
 
 import config
 
@@ -12,17 +11,11 @@ class HotkeyDialog(QDialog):
     def __init__(self, parent):
         super().__init__(parent)
         self.shortcut = ""
-        self.setWindowTitle("Назначить сочетание")
-        self.resize(400, 140)
-        layout = QVBoxLayout(self)
-        self.hint = QLabel(
-            "Нажмите сочетание с Ctrl, Alt, Shift или Win\n"
-            "и буквой A–Z или цифрой 0–9. Esc — отмена.", self
-        )
-        layout.addWidget(self.hint)
-        cancelButton = QPushButton("Отмена", self)
-        cancelButton.clicked.connect(self.reject)
-        layout.addWidget(cancelButton)
+        self.initUI()
+
+    def initUI(self):
+        uic.loadUi(config.HOTKEY_UI_PATH, self)
+        self.cancelButton.clicked.connect(self.reject)
 
     def event(self, event):
         if event.type() == QEvent.Type.ShortcutOverride:
@@ -65,34 +58,15 @@ class SettingsWindow(QDialog):
     def __init__(self, window):
         super().__init__(window)
         self.window = window
-        self.setWindowTitle("Настройки Sayte")
-        self.resize(400, 180)
-        layout = QVBoxLayout(self)
-        layout.addWidget(QLabel("Горячая клавиша записи:", self))
-        self.hotkeyInput = QLineEdit(window.shortcut, self)
-        self.hotkeyInput.setReadOnly(True)
-        layout.addWidget(self.hotkeyInput)
-        self.assignButton = QPushButton("Назначить сочетание", self)
+        self.initUI()
+
+    def initUI(self):
+        uic.loadUi(config.SETTINGS_UI_PATH, self)
+        self.hotkeyInput.setText(self.window.shortcut)
         self.assignButton.clicked.connect(self.assignHotkey)
-        layout.addWidget(self.assignButton)
-        self.resetButton = QPushButton("Сбросить", self)
         self.resetButton.clicked.connect(self.resetSettings)
-        self.buttons = QDialogButtonBox(
-            QDialogButtonBox.StandardButton.Save
-            | QDialogButtonBox.StandardButton.Cancel, self
-        )
-        self.buttons.button(QDialogButtonBox.StandardButton.Save).setText(
-            "Сохранить"
-        )
-        self.buttons.button(QDialogButtonBox.StandardButton.Cancel).setText(
-            "Отмена"
-        )
-        self.buttons.accepted.connect(self.saveSettings)
-        self.buttons.rejected.connect(self.reject)
-        buttonsLayout = QHBoxLayout()
-        buttonsLayout.addWidget(self.resetButton)
-        buttonsLayout.addWidget(self.buttons)
-        layout.addLayout(buttonsLayout)
+        self.saveButton.clicked.connect(self.saveSettings)
+        self.cancelButton.clicked.connect(self.reject)
 
     def assignHotkey(self):
         hotkey = self.window.hotkey

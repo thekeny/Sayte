@@ -1,5 +1,7 @@
 from datetime import datetime
 
+import config
+
 
 class Notes:
     def __init__(self, database):
@@ -10,7 +12,7 @@ class Notes:
         if not text:
             raise ValueError("Нельзя сохранить пустую заметку")
 
-        title = text.splitlines()[0][:60]
+        title = text.splitlines()[0][:config.TITLE_LENGTH]
         date = datetime.now().isoformat(timespec="seconds")
         with self.connection:
             cursor = self.connection.execute(
@@ -45,7 +47,7 @@ class Notes:
             self.connection.execute(
                 """UPDATE notes SET title = ?, current_text = ?, updated_at = ?
                 WHERE id = ?""",
-                (text.splitlines()[0][:60], text, date, noteId)
+                (text.splitlines()[0][:config.TITLE_LENGTH], text, date, noteId)
             )
             if tags is not None:
                 tags.setNoteTags(noteId, tagNames)

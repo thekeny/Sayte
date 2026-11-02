@@ -1,12 +1,10 @@
 import sqlite3
-from pathlib import Path
 
 from PyQt6 import uic
 from PyQt6.QtCore import QEvent, Qt, QTimer, QSize
 from PyQt6.QtGui import QIcon, QPixmap
-from PyQt6.QtWidgets import QApplication, QListWidgetItem, QMessageBox
+from PyQt6.QtWidgets import QApplication, QDialog, QListWidgetItem, QMessageBox
 from PyQt6.QtWidgets import QSystemTrayIcon, QWidget
-from PyQt6.QtWidgets import QDialog, QLabel, QVBoxLayout
 from sounddevice import PortAudioError
 
 import config
@@ -43,21 +41,13 @@ class Sayte(QWidget):
         self.loadNotes()
 
     def initUI(self):
-        path = Path(__file__).with_suffix(".ui")
-        uic.loadUi(str(path), self)
-        self.setWindowIcon(QIcon(str(config.ICON_PATH)))
-        logo = QPixmap(str(config.BASE_DIR / "images" / "sayte-logo.png"))
-        self.logoLabel.setPixmap(logo.scaled(
-            260, 100, Qt.AspectRatioMode.KeepAspectRatio,
-            Qt.TransformationMode.SmoothTransformation
-        ))
+        uic.loadUi(config.MAIN_UI_PATH, self)
+        self.setWindowIcon(QIcon(config.ICON_PATH))
+        self.settingsButton.setIcon(QIcon(config.SETTINGS_ICON_PATH))
+        self.logoLabel.setPixmap(QPixmap(config.LOGO_PATH))
         self.recordButton.clicked.connect(self.toggleRecording)
         self.recordButton.installEventFilter(self)
         self.settingsButton.clicked.connect(self.openSettings)
-        self.settingsButton.setIcon(
-            QIcon(str(config.BASE_DIR / "images" / "settings.svg"))
-        )
-        self.settingsButton.setIconSize(QSize(22, 22))
         self.updateHotkeyHint()
         self.notesList.itemClicked.connect(self.showNote)
         self.searchInput.textChanged.connect(self.searchNotes)
@@ -101,28 +91,20 @@ class Sayte(QWidget):
         selected = None
         for row in rows:
             title = row["title"]
-            preview = row["current_text"].splitlines()[0][:120]
+            preview = row["current_text"].splitlines()[0][:config.PREVIEW_LENGTH]
             item = QListWidgetItem()
             item.setData(Qt.ItemDataRole.UserRole, row["id"])
-            item.setSizeHint(QSize(0, 108 if noteTags[row["id"]] else 88))
+            height = (config.TAGGED_NOTE_HEIGHT if noteTags[row["id"]]
+                      else config.NOTE_HEIGHT)
+            item.setSizeHint(QSize(0, height))
             self.notesList.addItem(item)
-            card = QWidget()
-            layout = QVBoxLayout(card)
-            titleLabel = QLabel(title)
-            titleLabel.setTextFormat(Qt.TextFormat.PlainText)
-            titleLabel.setStyleSheet("font-weight: bold; color: #222222;")
-            previewLabel = QLabel(preview)
-            previewLabel.setTextFormat(Qt.TextFormat.PlainText)
-            previewLabel.setStyleSheet("color: #666666;")
-            layout.addWidget(titleLabel)
-            layout.addWidget(previewLabel)
-            if noteTags[row["id"]]:
-                tagsLabel = QLabel(", ".join(
-                    tag["name"] for tag in noteTags[row["id"]]
-                ))
-                tagsLabel.setTextFormat(Qt.TextFormat.PlainText)
-                tagsLabel.setStyleSheet("color: #777777;")
-                layout.addWidget(tagsLabel)
+            card = uic.loadUi(config.NOTE_CARD_UI_PATH)
+            card.titleLabel.setText(title)
+            card.previewLabel.setText(preview)
+            card.tagsLabel.setText(", ".join(
+                tag["name"] for tag in noteTags[row["id"]]
+            ))
+            card.tagsLabel.setVisible(bool(noteTags[row["id"]]))
             card.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
             self.notesList.setItemWidget(item, card)
             if row["id"] == selectedId:
@@ -304,7 +286,7 @@ class Sayte(QWidget):
 
         self.pendingText = ""
         self.setState("idle", "Запись сохранена")
-        self.recordingWindow.hideTimer.start(1000)
+        self.recordingWindow.hideTimer.start(config.SAVE_MESSAGE_MS)
         try:
             self.loadNotes(noteId)
         except sqlite3.Error as error:

@@ -1,5 +1,4 @@
 import os
-from pathlib import Path
 
 import config
 
@@ -13,17 +12,16 @@ class Whisper:
             return ""
 
         if self.model is None:
-            # Публичная модель скачивается без аккаунта и Xet-авторизации.
             os.environ["HF_HUB_DISABLE_XET"] = "1"
             os.environ["HF_HUB_DISABLE_IMPLICIT_TOKEN"] = "1"
             from faster_whisper import WhisperModel
             from faster_whisper.utils import download_model
             from huggingface_hub.errors import LocalEntryNotFoundError
 
-            cache = config.BASE_DIR / "data" / "models"
+            cache = config.MODEL_CACHE_PATH
             try:
                 path = download_model(
-                    config.WHISPER_MODEL, cache_dir=str(cache),
+                    config.WHISPER_MODEL, cache_dir=cache,
                     local_files_only=True, use_auth_token=False
                 )
             except LocalEntryNotFoundError:
@@ -31,11 +29,11 @@ class Whisper:
 
             files = ("model.bin", "config.json", "tokenizer.json")
             if path is None or not all(
-                (Path(path) / name).is_file() for name in files
+                os.path.isfile(f"{path}/{name}") for name in files
             ):
                 try:
                     path = download_model(
-                        config.WHISPER_MODEL, cache_dir=str(cache),
+                        config.WHISPER_MODEL, cache_dir=cache,
                         use_auth_token=False
                     )
                 except Exception as error:

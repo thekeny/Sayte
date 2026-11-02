@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>NoteCard</class>
+ <widget class="QWidget" name="NoteCard">
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item><widget class="QLabel" name="titleLabel"><property name="textFormat"><enum>Qt::TextFormat::PlainText</enum></property><property name="styleSheet"><string>font-weight: bold; color: #222222;</string></property></widget></item>
+   <item><widget class="QLabel" name="previewLabel"><property name="textFormat"><enum>Qt::TextFormat::PlainText</enum></property><property name="styleSheet"><string>color: #666666;</string></property></widget></item>
+   <item><widget class="QLabel" name="tagsLabel"><property name="textFormat"><enum>Qt::TextFormat::PlainText</enum></property><property name="styleSheet"><string>color: #777777;</string></property></widget></item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

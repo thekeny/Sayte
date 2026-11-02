@@ -1,16 +1,76 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>RecordingWindow</class>
  <widget class="QWidget" name="RecordingWindow">
-  <property name="geometry"><rect><x>0</x><y>0</y><width>320</width><height>130</height></rect></property>
-  <property name="minimumSize"><size><width>320</width><height>130</height></size></property>
-  <property name="maximumSize"><size><width>320</width><height>130</height></size></property>
-  <property name="windowTitle"><string>Запись</string></property>
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>320</width>
+    <height>130</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>320</width>
+    <height>130</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>320</width>
+    <height>130</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Запись</string>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
-   <item><widget class="QLabel" name="label"><property name="text"><string>Запись</string></property><property name="wordWrap"><bool>true</bool></property><property name="alignment"><set>Qt::AlignmentFlag::AlignCenter</set></property></widget></item>
-   <item><widget class="QPushButton" name="stopButton"><property name="text"><string>Остановить запись</string></property></widget></item>
+   <item>
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Запись</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignmentFlag::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="VoiceWave" name="wave">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>36</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>36</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="stopButton">
+     <property name="text">
+      <string>Остановить запись</string>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
- <resources/>
- <connections/>
+ <customwidgets>
+  <customwidget>
+   <class>VoiceWave</class>
+   <extends>QWidget</extends>
+   <header>ui.voice_wave</header>
+  </customwidget>
+ </customwidgets>
+ <resources />
+ <connections />
 </ui>

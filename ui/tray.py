@@ -6,7 +6,7 @@ import config
 
 class Tray(QSystemTrayIcon):
     def __init__(self, window):
-        super().__init__(QIcon(str(config.ICON_PATH)), window)
+        super().__init__(QIcon(config.ICON_PATH), window)
         self.window = window
         self.setToolTip(config.NAME)
         self.menu = QMenu(window)

@@ -14,7 +14,6 @@ class TranscriptionWorker(QThread):
         try:
             text = self.whisper.transcribe(self.audio)
         except Exception as error:
-            # Ошибки модели и её загрузки приходят из разных библиотек.
             self.error.emit(str(error))
         else:
             self.result.emit(text)

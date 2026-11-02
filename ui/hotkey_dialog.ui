@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>HotkeyDialog</class>
+ <widget class="QDialog" name="HotkeyDialog">
+  <property name="geometry"><rect><x>0</x><y>0</y><width>400</width><height>140</height></rect></property>
+  <property name="windowTitle"><string>Назначить сочетание</string></property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item><widget class="QLabel" name="hint"><property name="text"><string>Нажмите сочетание с Ctrl, Alt, Shift или Win
+и буквой A–Z или цифрой 0–9. Esc — отмена.</string></property></widget></item>
+   <item><widget class="QPushButton" name="cancelButton"><property name="text"><string>Отмена</string></property><property name="autoDefault"><bool>false</bool></property></widget></item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

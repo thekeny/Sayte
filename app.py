@@ -11,7 +11,7 @@ from ui.main_window import Sayte
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     app.setApplicationName(config.NAME)
-    app.setWindowIcon(QIcon(str(config.ICON_PATH)))
+    app.setWindowIcon(QIcon(config.ICON_PATH))
     app.setQuitOnLastWindowClosed(False)
     try:
         window = Sayte()
