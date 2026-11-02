@@ -41,6 +41,38 @@ class Database:
                         value TEXT NOT NULL
                     )
                 """)
+                self.connection.execute("""
+                    CREATE TABLE IF NOT EXISTS ai_profiles (
+                        id TEXT PRIMARY KEY,
+                        name TEXT NOT NULL,
+                        kind TEXT NOT NULL,
+                        url TEXT NOT NULL,
+                        api_key TEXT NOT NULL,
+                        model TEXT NOT NULL
+                    )
+                """)
+                self.connection.execute("""
+                    CREATE TABLE IF NOT EXISTS ai_presets (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        name TEXT NOT NULL UNIQUE,
+                        prompt TEXT NOT NULL
+                    )
+                """)
+                initialized = self.connection.execute(
+                    "SELECT value FROM settings WHERE name = ?",
+                    ("ai_initialized",)
+                ).fetchone()
+                if initialized is None:
+                    self.connection.execute(
+                        "INSERT INTO ai_profiles VALUES (?, ?, ?, ?, ?, ?)",
+                        ("openrouter", "OpenRouter", "openrouter",
+                         config.OPENROUTER_URL, "", "")
+                    )
+                    self.connection.executemany(
+                        "INSERT INTO settings (name, value) VALUES (?, ?)",
+                        [("ai_initialized", "1"),
+                         ("ai_active_profile", "openrouter")]
+                    )
         except sqlite3.Error:
             self.connection.close()
             raise

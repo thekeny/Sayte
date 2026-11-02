@@ -30,8 +30,4 @@ class Tray(QSystemTrayIcon):
     def setState(self, state, text):
         self.setToolTip(f"{config.NAME}: {text}")
         self.recordAction.setEnabled(state != "processing")
-        titles = {
-            "idle": "Начать запись", "recording": "Остановить запись",
-            "processing": "Распознавание…", "saving": "Повторить сохранение"
-        }
-        self.recordAction.setText(titles[state])
+        self.recordAction.setText(config.RECORD_BUTTON_TITLES[state])

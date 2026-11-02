@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0"><class>PresetWindow</class><widget class="QDialog" name="PresetWindow">
+<property name="windowTitle"><string>Свои действия ИИ</string></property><property name="geometry"><rect><x>0</x><y>0</y><width>540</width><height>430</height></rect></property>
+<layout class="QVBoxLayout" name="verticalLayout">
+<item><widget class="QLabel" name="hint"><property name="text"><string>Сохранённые действия появятся в списке при обработке заметки. Выберите «Новое действие» для создания или своё действие для изменения.</string></property><property name="wordWrap"><bool>true</bool></property></widget></item>
+<item><widget class="QComboBox" name="presetCombo"/></item>
+<item><widget class="QLineEdit" name="presetName"><property name="placeholderText"><string>Название действия</string></property></widget></item>
+<item><widget class="QPlainTextEdit" name="promptInput"><property name="placeholderText"><string>Инструкция для ИИ</string></property></widget></item>
+<item><widget class="QLabel" name="statusLabel"><property name="wordWrap"><bool>true</bool></property></widget></item>
+<item><layout class="QHBoxLayout" name="buttonsLayout">
+<item><widget class="QPushButton" name="savePresetButton"><property name="text"><string>Сохранить действие</string></property></widget></item>
+<item><widget class="QPushButton" name="deletePresetButton"><property name="text"><string>Удалить</string></property></widget></item>
+<item><widget class="QPushButton" name="closeButton"><property name="text"><string>Готово</string></property></widget></item>
+</layout></item></layout></widget><resources/><connections/></ui>

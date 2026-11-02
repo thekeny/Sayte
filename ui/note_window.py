@@ -9,6 +9,7 @@ from sounddevice import PortAudioError
 
 import config
 from transcription.worker import TranscriptionWorker
+from ui.preview_window import PreviewWindow
 
 
 class NoteWindow(QDialog):
@@ -25,6 +26,7 @@ class NoteWindow(QDialog):
         self.window = parent
         self.recording = False
         self.worker = None
+        self.aiDialog = None
         self.initUI()
         self.setWindowTitle(note["title"])
         self.editor.setPlainText(self.originalText)
@@ -33,6 +35,8 @@ class NoteWindow(QDialog):
         uic.loadUi(config.NOTE_UI_PATH, self)
         self.voiceButton.setIcon(QIcon(config.MICROPHONE_ICON_PATH))
         self.deleteButton.setIcon(QIcon(config.TRASH_ICON_PATH))
+        self.aiButton.setIcon(QIcon(config.CPU_ICON_PATH))
+        self.aiButton.clicked.connect(self.openAi)
         self.tagInput.returnPressed.connect(self.addTags)
         self.updateTagChips()
         self.voiceButton.clicked.connect(self.toggleRecording)
@@ -72,6 +76,11 @@ class NoteWindow(QDialog):
                 or set(self.tagNames()) != set(self.originalTags))
 
     def reject(self):
+        if self.aiDialog is not None:
+            QMessageBox.warning(
+                self, "Обработка ИИ", "Закройте окно обработки ИИ."
+            )
+            return
         if self.recording or self.worker is not None:
             QMessageBox.warning(
                 self, "Голосовая запись",
@@ -133,6 +142,8 @@ class NoteWindow(QDialog):
         self.accept()
 
     def toggleRecording(self):
+        if self.aiDialog is not None:
+            return
         if self.worker is not None:
             return
         if self.recording:
@@ -156,6 +167,7 @@ class NoteWindow(QDialog):
         self.saveButton.setEnabled(False)
         self.cancelButton.setEnabled(False)
         self.deleteButton.setEnabled(False)
+        self.aiButton.setEnabled(False)
 
     def stopRecording(self):
         self.recording = False
@@ -211,6 +223,32 @@ class NoteWindow(QDialog):
         self.saveButton.setEnabled(True)
         self.cancelButton.setEnabled(True)
         self.deleteButton.setEnabled(True)
+        self.aiButton.setEnabled(True)
+
+    def openAi(self):
+        if self.recording or self.worker is not None or self.aiDialog is not None:
+            return
+        if not self.editor.toPlainText().strip():
+            QMessageBox.warning(self, "Обработка ИИ", "Текст заметки пуст.")
+            return
+        try:
+            dialog = PreviewWindow(
+                self.window.providers, self.window.presets,
+                self.editor.toPlainText(), self
+            )
+            self.aiDialog = dialog
+            if dialog.exec() == QDialog.DialogCode.Accepted:
+                cursor = self.editor.textCursor()
+                cursor.select(QTextCursor.SelectionType.Document)
+                cursor.insertText(dialog.resultEditor.toPlainText())
+                self.editor.setTextCursor(cursor)
+                self.voiceStatus.setText(
+                    "Результат ИИ применён. Сохраните изменения заметки."
+                )
+        except sqlite3.Error:
+            QMessageBox.warning(self, "Обработка ИИ", "Ошибка чтения базы данных.")
+        finally:
+            self.aiDialog = None
 
     def exportText(self):
         name = re.sub(r"[<>:\"/\\|?*\x00-\x1f]", "_", self.windowTitle())

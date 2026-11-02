@@ -41,6 +41,16 @@
    <item>
     <layout class="QHBoxLayout" name="buttonsLayout">
      <item>
+      <widget class="QPushButton" name="aiButton">
+       <property name="minimumSize"><size><width>36</width><height>36</height></size></property>
+       <property name="maximumSize"><size><width>36</width><height>36</height></size></property>
+       <property name="iconSize"><size><width>22</width><height>22</height></size></property>
+       <property name="toolTip"><string>Обработать заметку с ИИ</string></property>
+       <property name="accessibleName"><string>Обработать заметку с ИИ</string></property>
+       <property name="autoDefault"><bool>false</bool></property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="voiceButton">
        <property name="minimumSize">
         <size>

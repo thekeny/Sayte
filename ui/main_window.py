@@ -8,9 +8,12 @@ from PyQt6.QtWidgets import QSystemTrayIcon, QWidget
 from sounddevice import PortAudioError
 
 import config
+from ai.worker import AiWorker
 from audio.recorder import Recorder
 from database.database import Database
 from database.notes import Notes
+from database.presets import Presets
+from database.providers import Providers
 from database.settings import Settings
 from database.tags import Tags
 from transcription.whisper import Whisper
@@ -28,6 +31,8 @@ class Sayte(QWidget):
         self.notes = Notes(self.database)
         self.tags = Tags(self.database)
         self.settings = Settings(self.database)
+        self.providers = Providers(self.database)
+        self.presets = Presets(self.database)
         self.shortcut = self.settings.getHotkey()
         self.recorder = Recorder()
         self.whisper = Whisper()
@@ -206,11 +211,7 @@ class Sayte(QWidget):
     def setState(self, state, text):
         self.state = state
         self.statusLabel.setText(text)
-        titles = {
-            "idle": "Начать запись", "recording": "Остановить запись",
-            "processing": "Распознавание…", "saving": "Повторить сохранение"
-        }
-        self.recordButton.setText(titles[state])
+        self.recordButton.setText(config.RECORD_BUTTON_TITLES[state])
         self.recordButton.setEnabled(state != "processing")
         self.tray.setState(state, text)
         self.recordingWindow.setState(state, text)
@@ -313,6 +314,11 @@ class Sayte(QWidget):
         self.activateWindow()
 
     def requestExit(self):
+        if self.findChildren(AiWorker):
+            QMessageBox.warning(
+                self, "Выход из Sayte", "Дождитесь завершения запроса к ИИ."
+            )
+            return
         if self.activeEditor is not None:
             self.activeEditor.close()
             if self.activeEditor.isVisible():

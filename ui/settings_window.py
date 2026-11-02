@@ -2,9 +2,12 @@ import sqlite3
 
 from PyQt6 import uic
 from PyQt6.QtCore import QEvent, Qt
+from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QDialog, QMessageBox
 
 import config
+from ui.provider_window import ProviderWindow
+from ui.preset_window import PresetWindow
 
 
 class HotkeyDialog(QDialog):
@@ -63,10 +66,27 @@ class SettingsWindow(QDialog):
     def initUI(self):
         uic.loadUi(config.SETTINGS_UI_PATH, self)
         self.hotkeyInput.setText(self.window.shortcut)
+        self.providersButton.setIcon(QIcon(config.CPU_ICON_PATH))
+        self.providersButton.clicked.connect(self.openProviders)
+        self.presetsButton.clicked.connect(self.openPresets)
         self.assignButton.clicked.connect(self.assignHotkey)
         self.resetButton.clicked.connect(self.resetSettings)
         self.saveButton.clicked.connect(self.saveSettings)
         self.cancelButton.clicked.connect(self.reject)
+
+    def openProviders(self):
+        try:
+            ProviderWindow(self.window.providers, self).exec()
+        except sqlite3.Error:
+            QMessageBox.warning(
+                self, "Подключения ИИ", "Не удалось загрузить подключения."
+            )
+
+    def openPresets(self):
+        try:
+            PresetWindow(self.window.presets, self).exec()
+        except sqlite3.Error:
+            QMessageBox.warning(self, "Действия ИИ", "Ошибка чтения действий.")
 
     def assignHotkey(self):
         hotkey = self.window.hotkey
