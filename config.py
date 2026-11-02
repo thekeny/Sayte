@@ -122,6 +122,18 @@ THEME_COLORS = {
 PINNED_ICON_PATH = "images/pinned.svg"
 
 PROCESSING_TEXT = "Обработка…"
+PROMPT_VOICE_MESSAGES = {
+    "idle": "Продиктовать запрос",
+    "stop": "Остановить запись запроса",
+    "recording": "Запись…",
+    "busy": "Дождитесь завершения текущей записи или распознавания.",
+    "wait": "Остановите запись запроса и дождитесь распознавания.",
+    "empty": "Речь не найдена. Попробуйте ещё раз.",
+    "ready": "",
+    "start_error": "Не удалось включить микрофон: {error}",
+    "record_error": "Ошибка записи: {error}",
+    "error": "Не удалось распознать запрос: {error}"
+}
 MODEL_DOWNLOAD_TEXT = "Первая загрузка модели Whisper. Нужен интернет."
 SPINNER_INTERVAL_MS = 40
 SPINNER_STEP = 12

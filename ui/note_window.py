@@ -158,6 +158,7 @@ class NoteWindow(QDialog):
 
     def toggleRecording(self):
         if self.aiDialog is not None:
+            self.aiDialog.toggleRecording()
             return
         if self.worker is not None:
             return
@@ -178,7 +179,7 @@ class NoteWindow(QDialog):
         self.recording = True
         self.voiceButton.setChecked(True)
         self.voiceButton.setToolTip("Остановить запись")
-        self.voiceStatus.setText("Идёт запись. Нажмите микрофон ещё раз.")
+        self.voiceStatus.setText("Запись…")
         self.saveButton.setEnabled(False)
         self.cancelButton.setEnabled(False)
         self.deleteButton.setEnabled(False)
@@ -221,9 +222,7 @@ class NoteWindow(QDialog):
         cursor.endEditBlock()
         self.editor.setTextCursor(cursor)
         self.editor.ensureCursorVisible()
-        self.voiceStatus.setText(
-            "Текст добавлен. Сохраните изменения заметки."
-        )
+        self.voiceStatus.clear()
 
     def voiceError(self, message):
         self.voiceStatus.setText(f"Не удалось распознать речь: {message}")
@@ -257,9 +256,7 @@ class NoteWindow(QDialog):
                 cursor.select(QTextCursor.SelectionType.Document)
                 cursor.insertText(dialog.resultEditor.toPlainText())
                 self.editor.setTextCursor(cursor)
-                self.voiceStatus.setText(
-                    "Результат ИИ применён. Сохраните изменения заметки."
-                )
+                self.voiceStatus.clear()
         except sqlite3.Error:
             QMessageBox.warning(self, "Обработка ИИ", "Ошибка чтения базы данных.")
         finally:

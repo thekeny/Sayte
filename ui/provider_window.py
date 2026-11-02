@@ -122,8 +122,7 @@ class ProviderWindow(QDialog):
         selected = modelId(self.modelCombo)
         fillModels(self.modelCombo, models, selected)
         self.statusLabel.setText(
-            f"Получено моделей: {len(models)}. "
-            "Можно ввести идентификатор вручную."
+            f"Моделей: {len(models)}"
         )
 
     def setBusy(self, busy):

@@ -34,7 +34,7 @@
    <item>
     <widget class="QLineEdit" name="tagInput">
      <property name="placeholderText">
-      <string>Введите тег и нажмите Enter</string>
+      <string>Тег</string>
      </property>
     </widget>
    </item>

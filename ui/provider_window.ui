@@ -4,7 +4,6 @@
   <property name="windowTitle"><string>Подключения ИИ</string></property>
   <property name="geometry"><rect><x>0</x><y>0</y><width>620</width><height>540</height></rect></property>
   <layout class="QVBoxLayout" name="verticalLayout">
-   <item><widget class="QLabel" name="hint"><property name="text"><string>Выберите подключение или добавьте своё. Выбранный профиль станет активным после сохранения.</string></property><property name="wordWrap"><bool>true</bool></property></widget></item>
    <item><widget class="QComboBox" name="profileCombo"><property name="accessibleName"><string>Подключение ИИ</string></property></widget></item>
    <item><layout class="QHBoxLayout" name="profileButtons">
     <item><widget class="QPushButton" name="addButton"><property name="text"><string>Добавить</string></property></widget></item>
@@ -16,13 +15,12 @@
     <item row="1" column="0"><widget class="QLabel" name="urlLabel"><property name="text"><string>Базовый URL API</string></property></widget></item>
     <item row="1" column="1"><widget class="QLineEdit" name="urlInput"><property name="placeholderText"><string>http://localhost:11434/v1</string></property></widget></item>
     <item row="2" column="0"><widget class="QLabel" name="keyLabel"><property name="text"><string>API-ключ</string></property></widget></item>
-    <item row="2" column="1"><widget class="QLineEdit" name="keyInput"><property name="echoMode"><enum>QLineEdit::Password</enum></property><property name="placeholderText"><string>Для локального API можно оставить пустым</string></property></widget></item>
+    <item row="2" column="1"><widget class="QLineEdit" name="keyInput"><property name="echoMode"><enum>QLineEdit::Password</enum></property></widget></item>
     <item row="3" column="0"><widget class="QLabel" name="modelLabel"><property name="text"><string>Модель</string></property></widget></item>
-    <item row="3" column="1"><widget class="QComboBox" name="modelCombo"><property name="editable"><bool>true</bool></property><property name="insertPolicy"><enum>QComboBox::NoInsert</enum></property><property name="placeholderText"><string>Выберите или введите идентификатор</string></property></widget></item>
+    <item row="3" column="1"><widget class="QComboBox" name="modelCombo"><property name="editable"><bool>true</bool></property><property name="insertPolicy"><enum>QComboBox::NoInsert</enum></property></widget></item>
     <item row="4" column="1"><widget class="QPushButton" name="refreshButton"><property name="text"><string>Обновить список моделей</string></property></widget></item>
    </layout></widget></item>
    <item><widget class="QLabel" name="statusLabel"><property name="wordWrap"><bool>true</bool></property></widget></item>
-   <item><widget class="QLabel" name="storageLabel"><property name="text"><string>Ключи сохраняются локально в базе Sayte. Изменения подключений записываются кнопкой «Сохранить подключения».</string></property><property name="wordWrap"><bool>true</bool></property></widget></item>
    <item><layout class="QHBoxLayout" name="buttonsLayout">
     <item><widget class="QPushButton" name="saveButton"><property name="text"><string>Сохранить подключения</string></property></widget></item>
     <item><widget class="QPushButton" name="cancelButton"><property name="text"><string>Отмена</string></property></widget></item>

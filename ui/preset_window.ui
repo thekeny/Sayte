@@ -2,7 +2,6 @@
 <ui version="4.0"><class>PresetWindow</class><widget class="QDialog" name="PresetWindow">
 <property name="windowTitle"><string>Свои действия ИИ</string></property><property name="geometry"><rect><x>0</x><y>0</y><width>540</width><height>430</height></rect></property>
 <layout class="QVBoxLayout" name="verticalLayout">
-<item><widget class="QLabel" name="hint"><property name="text"><string>Сохранённые действия появятся в списке при обработке заметки. Выберите «Новое действие» для создания или своё действие для изменения.</string></property><property name="wordWrap"><bool>true</bool></property></widget></item>
 <item><widget class="QComboBox" name="presetCombo"/></item>
 <item><widget class="QLineEdit" name="presetName"><property name="placeholderText"><string>Название действия</string></property></widget></item>
 <item><widget class="QPlainTextEdit" name="promptInput"><property name="placeholderText"><string>Инструкция для ИИ</string></property></widget></item>
