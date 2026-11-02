@@ -21,6 +21,8 @@ class RecordingWindow(QWidget):
         self.setWindowFlags(
             Qt.WindowType.Tool | Qt.WindowType.WindowStaysOnTopHint
         )
+        self.spinner.hide()
+        self.downloadLabel.hide()
         self.stopButton.clicked.connect(self.stopRequested.emit)
         self.waveTimer = QTimer(self)
         self.waveTimer.setInterval(config.WAVE_INTERVAL_MS)
@@ -32,7 +34,12 @@ class RecordingWindow(QWidget):
     def setState(self, state, text):
         self.hideTimer.stop()
         self.busy = state in ("recording", "processing")
-        self.label.setText(text)
+        processing = state == "processing"
+        self.label.setText(config.PROCESSING_TEXT if processing else text)
+        self.spinner.setVisible(processing)
+        downloading = processing and text == config.MODEL_DOWNLOAD_TEXT
+        self.downloadLabel.setText(config.MODEL_DOWNLOAD_TEXT)
+        self.downloadLabel.setVisible(downloading)
         self.stopButton.setVisible(state == "recording")
         self.wave.setVisible(state == "recording")
         if state == "recording":

@@ -3,7 +3,7 @@
  <class>TagChip</class>
  <widget class="QPushButton" name="TagChip">
   <property name="autoDefault"><bool>false</bool></property>
-  <property name="styleSheet"><string>QPushButton { background: #eeeeee; border: 1px solid #cccccc; border-radius: 12px; padding: 4px 10px; text-align: left; } QPushButton:hover { background: #dddddd; }</string></property>
+  
  </widget>
  <resources/>
  <connections/>

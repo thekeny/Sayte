@@ -1,3 +1,4 @@
+import os
 import sqlite3
 import sys
 
@@ -6,9 +7,12 @@ from PyQt6.QtWidgets import QApplication, QMessageBox
 
 import config
 from ui.main_window import Sayte
+from ui.theme import applyTheme
 
 
 if __name__ == "__main__":
+    location = sys.executable if getattr(sys, "frozen", False) else __file__
+    os.chdir(os.path.dirname(os.path.abspath(location)))
     app = QApplication(sys.argv)
     app.setApplicationName(config.NAME)
     app.setWindowIcon(QIcon(config.ICON_PATH))
@@ -30,5 +34,7 @@ if __name__ == "__main__":
     app.aboutToQuit.connect(
         lambda: window.hotkey.stop() if window.hotkey is not None else None
     )
-    window.show()
+    applyTheme(window.settings.getTheme())
+    if "--start-in-tray" not in sys.argv or not window.tray.isVisible():
+        window.show()
     sys.exit(app.exec())

@@ -4,6 +4,9 @@
   <property name="geometry"><rect><x>0</x><y>0</y><width>400</width><height>180</height></rect></property>
   <property name="windowTitle"><string>Настройки Sayte</string></property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <item><widget class="QLabel" name="themeLabel"><property name="text"><string>Тема:</string></property></widget></item>
+   <item><widget class="QComboBox" name="themeCombo"/></item>
+   <item><widget class="QCheckBox" name="autostartCheck"><property name="text"><string>Запускать вместе с Windows в трее</string></property></widget></item>
    <item><widget class="QLabel" name="hotkeyLabel"><property name="text"><string>Горячая клавиша записи:</string></property></widget></item>
    <item><widget class="QLineEdit" name="hotkeyInput"><property name="readOnly"><bool>true</bool></property></widget></item>
    <item><widget class="QPushButton" name="assignButton"><property name="text"><string>Назначить сочетание</string></property></widget></item>

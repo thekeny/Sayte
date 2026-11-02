@@ -58,9 +58,7 @@
        <property name="accessibleName">
         <string>Настройки</string>
        </property>
-       <property name="styleSheet">
-        <string>QPushButton { border: 1px solid #cccccc; border-radius: 4px; background: #ffffff; } QPushButton:hover { background: #eeeeee; } QPushButton:pressed { background: #dddddd; }</string>
-       </property>
+       
        <property name="iconSize">
         <size>
          <width>22</width>
@@ -141,9 +139,7 @@
      <property name="horizontalScrollBarPolicy">
       <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
      </property>
-     <property name="styleSheet">
-      <string>QListWidget { border: none; background: transparent; } QListWidget::item { border: 1px solid #cccccc; border-radius: 8px; background: #ffffff; color: #222222; } QListWidget::item:selected { border: 1px solid #888888; background: #eeeeee; }</string>
-     </property>
+     
     </widget>
    </item>
    <item>

@@ -2,6 +2,7 @@ from PyQt6.QtCore import QThread, pyqtSignal
 
 
 class TranscriptionWorker(QThread):
+    status = pyqtSignal(str)
     result = pyqtSignal(str)
     error = pyqtSignal(str)
 
@@ -12,7 +13,7 @@ class TranscriptionWorker(QThread):
 
     def run(self):
         try:
-            text = self.whisper.transcribe(self.audio)
+            text = self.whisper.transcribe(self.audio, self.status.emit)
         except Exception as error:
             self.error.emit(str(error))
         else:

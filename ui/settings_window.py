@@ -6,6 +6,8 @@ from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QDialog, QMessageBox
 
 import config
+from ui.theme import applyTheme
+from utils.autostart import getAutostart, getCommand, setAutostart
 from ui.provider_window import ProviderWindow
 from ui.preset_window import PresetWindow
 
@@ -65,6 +67,12 @@ class SettingsWindow(QDialog):
 
     def initUI(self):
         uic.loadUi(config.SETTINGS_UI_PATH, self)
+        self.themeCombo.addItem("Светлая", "light")
+        self.themeCombo.addItem("Тёмная", "dark")
+        self.themeCombo.setCurrentIndex(
+            self.themeCombo.findData(self.window.settings.getTheme())
+        )
+        self.autostartCheck.setChecked(bool(getAutostart()))
         self.hotkeyInput.setText(self.window.shortcut)
         self.providersButton.setIcon(QIcon(config.CPU_ICON_PATH))
         self.providersButton.clicked.connect(self.openProviders)
@@ -106,18 +114,43 @@ class SettingsWindow(QDialog):
 
     def resetSettings(self):
         answer = QMessageBox.question(
-            self, "Сброс настроек", "Вернуть горячую клавишу по умолчанию?",
+            self, "Сброс настроек", "Вернуть настройки по умолчанию?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No
         )
         if answer == QMessageBox.StandardButton.Yes:
             self.hotkeyInput.setText(config.HOTKEY)
+            self.themeCombo.setCurrentIndex(0)
+            self.autostartCheck.setChecked(False)
 
     def saveSettings(self):
         shortcut = self.hotkeyInput.text().replace(" ", "").lower()
         try:
+            previous = self.window.shortcut
+            oldTheme = self.window.settings.getTheme()
+            oldCommand = getAutostart()
+        except (OSError, sqlite3.Error) as error:
+            QMessageBox.warning(self, "Настройки", str(error))
+            return
+        theme = self.themeCombo.currentData()
+        try:
+            command = getCommand() if self.autostartCheck.isChecked() else None
+            if command != oldCommand:
+                setAutostart(command)
             self.window.applySettings(shortcut)
+            self.window.settings.saveTheme(theme)
+            applyTheme(theme)
         except (OSError, ImportError, ValueError, sqlite3.Error) as error:
+            for restore in (
+                lambda: setAutostart(oldCommand),
+                lambda: self.window.applySettings(previous),
+                lambda: self.window.settings.saveTheme(oldTheme),
+                lambda: applyTheme(oldTheme)
+            ):
+                try:
+                    restore()
+                except (OSError, ImportError, ValueError, sqlite3.Error) as issue:
+                    QMessageBox.warning(self, "Восстановление", str(issue))
             QMessageBox.warning(self, "Настройки", str(error))
             return
         self.accept()

@@ -25,9 +25,16 @@ class Notes:
 
     def getNotes(self):
         return self.connection.execute(
-            """SELECT id, title, current_text, created_at FROM notes
-            ORDER BY created_at DESC, id DESC"""
+            """SELECT id, title, current_text, created_at, is_pinned FROM notes
+            ORDER BY is_pinned DESC, created_at DESC, id DESC"""
         ).fetchall()
+
+    def setPinned(self, noteId, pinned):
+        with self.connection:
+            self.connection.execute(
+                "UPDATE notes SET is_pinned = ? WHERE id = ?",
+                (int(pinned), noteId)
+            )
 
     def getNote(self, noteId):
         return self.connection.execute(
@@ -38,7 +45,7 @@ class Notes:
         with self.connection:
             self.connection.execute("DELETE FROM notes WHERE id = ?", (noteId,))
 
-    def updateNote(self, noteId, text, tags=None, tagNames=None):
+    def updateNote(self, noteId, text, tags=None, tagNames=None, pinned=None):
         text = text.strip()
         if not text:
             raise ValueError("Нельзя сохранить пустую заметку")
@@ -49,5 +56,10 @@ class Notes:
                 WHERE id = ?""",
                 (text.splitlines()[0][:config.TITLE_LENGTH], text, date, noteId)
             )
+            if pinned is not None:
+                self.connection.execute(
+                    "UPDATE notes SET is_pinned = ? WHERE id = ?",
+                    (int(pinned), noteId)
+                )
             if tags is not None:
                 tags.setNoteTags(noteId, tagNames)

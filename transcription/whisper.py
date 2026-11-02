@@ -7,7 +7,7 @@ class Whisper:
     def __init__(self):
         self.model = None
 
-    def transcribe(self, audio):
+    def transcribe(self, audio, status=None):
         if audio.size == 0:
             return ""
 
@@ -31,6 +31,8 @@ class Whisper:
             if path is None or not all(
                 os.path.isfile(f"{path}/{name}") for name in files
             ):
+                if status is not None:
+                    status(config.MODEL_DOWNLOAD_TEXT)
                 try:
                     path = download_model(
                         config.WHISPER_MODEL, cache_dir=cache,
@@ -44,6 +46,8 @@ class Whisper:
                         f"Подробности: {error}"
                     ) from error
 
+            if status is not None:
+                status(config.PROCESSING_TEXT)
             self.model = WhisperModel(
                 path, device="cpu", compute_type="int8", local_files_only=True
             )

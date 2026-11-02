@@ -110,6 +110,10 @@ class Sayte(QWidget):
                 tag["name"] for tag in noteTags[row["id"]]
             ))
             card.tagsLabel.setVisible(bool(noteTags[row["id"]]))
+            card.pinLabel.setPixmap(
+                QIcon(config.PINNED_ICON_PATH).pixmap(20, 20)
+            )
+            card.pinLabel.setVisible(bool(row["is_pinned"]))
             card.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
             self.notesList.setItemWidget(item, card)
             if row["id"] == selectedId:
@@ -156,7 +160,10 @@ class Sayte(QWidget):
                     self.showError(f"Не удалось обновить список: {error}")
 
     def openSettings(self):
-        SettingsWindow(self).exec()
+        try:
+            SettingsWindow(self).exec()
+        except (OSError, sqlite3.Error) as error:
+            self.showError(f"Не удалось открыть настройки: {error}")
 
     def updateHotkeyHint(self):
         self.statusLabel.setText(
@@ -252,18 +259,16 @@ class Sayte(QWidget):
             self.setState("idle", "Запись пустая. Попробуйте ещё раз.")
             return
 
-        message = "Распознавание речи…"
-        if self.whisper.model is None:
-            message = (
-                "Загрузка Whisper base и распознавание. "
-                "При первом запуске нужен интернет."
-            )
-        self.setState("processing", message)
+        self.setState("processing", config.PROCESSING_TEXT)
         self.worker = TranscriptionWorker(self.whisper, audio, self)
+        self.worker.status.connect(self.processingStatus)
         self.worker.result.connect(self.processText)
         self.worker.error.connect(self.transcriptionError)
         self.worker.finished.connect(self.finishProcessing)
         self.worker.start()
+
+    def processingStatus(self, text):
+        self.setState("processing", text)
 
     def processText(self, text):
         if not text.strip():

@@ -18,6 +18,7 @@ class NoteWindow(QDialog):
         self.notes = notes
         self.noteId = note["id"]
         self.originalText = note["current_text"]
+        self.originalPinned = bool(note["is_pinned"])
         self.tags = parent.tags
         self.originalTags = [
             tag["name"] for tag in self.tags.getNoteTags(self.noteId)
@@ -33,6 +34,9 @@ class NoteWindow(QDialog):
 
     def initUI(self):
         uic.loadUi(config.NOTE_UI_PATH, self)
+        self.pinButton.setChecked(self.originalPinned)
+        self.updatePinButton()
+        self.pinButton.toggled.connect(self.updatePinButton)
         self.voiceButton.setIcon(QIcon(config.MICROPHONE_ICON_PATH))
         self.deleteButton.setIcon(QIcon(config.TRASH_ICON_PATH))
         self.aiButton.setIcon(QIcon(config.CPU_ICON_PATH))
@@ -44,6 +48,15 @@ class NoteWindow(QDialog):
         self.exportButton.clicked.connect(self.exportText)
         self.saveButton.clicked.connect(self.saveChanges)
         self.cancelButton.clicked.connect(self.reject)
+
+    def updatePinButton(self):
+        pinned = self.pinButton.isChecked()
+        title = "Открепить" if pinned else "Закрепить"
+        path = config.PINNED_ICON_PATH if pinned else config.PIN_ICON_PATH
+        self.pinButton.setIcon(QIcon(path))
+        self.pinButton.setText(title)
+        self.pinButton.setToolTip(title)
+        self.pinButton.setAccessibleName(title)
 
     def tagNames(self):
         return list(dict.fromkeys(
@@ -73,7 +86,8 @@ class NoteWindow(QDialog):
 
     def hasChanges(self):
         return (self.editor.toPlainText() != self.originalText
-                or set(self.tagNames()) != set(self.originalTags))
+                or set(self.tagNames()) != set(self.originalTags)
+                or self.pinButton.isChecked() != self.originalPinned)
 
     def reject(self):
         if self.aiDialog is not None:
@@ -114,7 +128,8 @@ class NoteWindow(QDialog):
             return
         try:
             self.notes.updateNote(
-                self.noteId, self.editor.toPlainText(), self.tags, self.tagNames()
+                self.noteId, self.editor.toPlainText(), self.tags, self.tagNames(),
+                self.pinButton.isChecked()
             )
         except (sqlite3.Error, ValueError) as error:
             QMessageBox.warning(self, "Сохранение", str(error))

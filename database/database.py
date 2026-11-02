@@ -58,6 +58,14 @@ class Database:
                         prompt TEXT NOT NULL
                     )
                 """)
+                columns = self.connection.execute(
+                    "PRAGMA table_info(notes)"
+                ).fetchall()
+                if "is_pinned" not in [column["name"] for column in columns]:
+                    self.connection.execute(
+                        "ALTER TABLE notes ADD COLUMN is_pinned "
+                        "INTEGER NOT NULL DEFAULT 0"
+                    )
                 initialized = self.connection.execute(
                     "SELECT value FROM settings WHERE name = ?",
                     ("ai_initialized",)

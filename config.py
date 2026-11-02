@@ -111,3 +111,18 @@ HOTKEY_MODIFIERS = {
 }
 
 PRESET_UI_PATH = "ui/preset_window.ui"
+
+PIN_ICON_PATH = "images/pin.svg"
+AUTOSTART_KEY = r"Software\Microsoft\Windows\CurrentVersion\Run"
+THEME_COLORS = {
+    "light": ("#f3f3f3", "#ffffff", "#222222", "#686868", "#cccccc", "#dddddd"),
+    "dark": ("#242424", "#303030", "#eeeeee", "#bcbcbc", "#555555", "#484848")
+}
+
+PINNED_ICON_PATH = "images/pinned.svg"
+
+PROCESSING_TEXT = "Обработка…"
+MODEL_DOWNLOAD_TEXT = "Первая загрузка модели Whisper. Нужен интернет."
+SPINNER_INTERVAL_MS = 40
+SPINNER_STEP = 12
+SPINNER_ARC = 270
