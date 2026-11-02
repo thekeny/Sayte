@@ -1,7 +1,6 @@
 import sqlite3
 import sys
 
-from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QApplication, QMessageBox
 
@@ -22,18 +21,14 @@ if __name__ == "__main__":
         )
         sys.exit(1)
     try:
-        from utils.hotkey import Hotkey
-
-        window.hotkey = Hotkey(config.HOTKEY)
-        window.hotkey.activated.connect(
-            window.toggleRecording, Qt.ConnectionType.QueuedConnection
-        )
-        app.aboutToQuit.connect(window.hotkey.stop)
-        window.hotkey.start()
+        window.startHotkey()
     except (OSError, ImportError, ValueError) as error:
         QMessageBox.warning(
             window, "Горячая клавиша",
-            f"Не удалось включить {config.HOTKEY}: {error}"
+            f"Не удалось включить {window.shortcut}: {error}"
         )
+    app.aboutToQuit.connect(
+        lambda: window.hotkey.stop() if window.hotkey is not None else None
+    )
     window.show()
     sys.exit(app.exec())

@@ -22,6 +22,12 @@ class Database:
                         updated_at TEXT NOT NULL
                     )
                 """)
+                self.connection.execute("""
+                    CREATE TABLE IF NOT EXISTS settings (
+                        name TEXT PRIMARY KEY,
+                        value TEXT NOT NULL
+                    )
+                """)
         except sqlite3.Error:
             self.connection.close()
             raise

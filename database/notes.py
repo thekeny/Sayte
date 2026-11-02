@@ -31,3 +31,15 @@ class Notes:
         return self.connection.execute(
             "SELECT * FROM notes WHERE id = ?", (noteId,)
         ).fetchone()
+
+    def updateNote(self, noteId, text):
+        text = text.strip()
+        if not text:
+            raise ValueError("Нельзя сохранить пустую заметку")
+        date = datetime.now().isoformat(timespec="seconds")
+        with self.connection:
+            self.connection.execute(
+                """UPDATE notes SET title = ?, current_text = ?, updated_at = ?
+                WHERE id = ?""",
+                (text.splitlines()[0][:60], text, date, noteId)
+            )

@@ -6,16 +6,19 @@ from PyQt6.QtCore import Qt, QTimer, QSize
 from PyQt6.QtGui import QIcon, QPixmap
 from PyQt6.QtWidgets import QApplication, QListWidgetItem, QMessageBox
 from PyQt6.QtWidgets import QSystemTrayIcon, QWidget
-from PyQt6.QtWidgets import QDialog, QLabel, QVBoxLayout, QTextEdit
+from PyQt6.QtWidgets import QDialog, QLabel, QVBoxLayout
 from sounddevice import PortAudioError
 
 import config
 from audio.recorder import Recorder
 from database.database import Database
 from database.notes import Notes
+from database.settings import Settings
 from transcription.whisper import Whisper
 from transcription.worker import TranscriptionWorker
 from ui.recording_window import RecordingWindow
+from ui.note_window import NoteWindow
+from ui.settings_window import SettingsWindow
 from ui.tray import Tray
 
 
@@ -24,10 +27,13 @@ class Sayte(QWidget):
         super().__init__()
         self.database = Database()
         self.notes = Notes(self.database)
+        self.settings = Settings(self.database)
+        self.shortcut = self.settings.getHotkey()
         self.recorder = Recorder()
         self.whisper = Whisper()
         self.worker = None
         self.hotkey = None
+        self.activeEditor = None
         self.state = "idle"
         self.pendingText = ""
         self.exitAfterSave = False
@@ -44,6 +50,12 @@ class Sayte(QWidget):
             Qt.TransformationMode.SmoothTransformation
         ))
         self.recordButton.clicked.connect(self.toggleRecording)
+        self.settingsButton.clicked.connect(self.openSettings)
+        self.settingsButton.setIcon(
+            QIcon(str(config.BASE_DIR / "images" / "settings.svg"))
+        )
+        self.settingsButton.setIconSize(QSize(22, 22))
+        self.updateHotkeyHint()
         self.notesList.itemClicked.connect(self.showNote)
         self.recordingWindow = RecordingWindow(self.recorder)
         self.recordingWindow.stopRequested.connect(self.toggleRecording)
@@ -93,15 +105,70 @@ class Sayte(QWidget):
             self.showError(f"Не удалось открыть заметку: {error}")
             return
         if note is not None:
-            dialog = QDialog(self)
-            dialog.setWindowTitle(note["title"])
-            dialog.resize(500, 500)
-            layout = QVBoxLayout(dialog)
-            text = QTextEdit(dialog)
-            text.setReadOnly(True)
-            text.setPlainText(note["current_text"])
-            layout.addWidget(text)
-            dialog.exec()
+            dialog = NoteWindow(self.notes, note, self)
+            self.activeEditor = dialog
+            try:
+                result = dialog.exec()
+            finally:
+                self.activeEditor = None
+            if result == QDialog.DialogCode.Accepted:
+                try:
+                    self.loadNotes(note["id"])
+                except sqlite3.Error as error:
+                    self.showError(f"Не удалось обновить список: {error}")
+
+    def openSettings(self):
+        SettingsWindow(self).exec()
+
+    def updateHotkeyHint(self):
+        self.statusLabel.setText(
+            f"{self.shortcut.upper()} — начать или остановить запись"
+        )
+
+    def startHotkey(self):
+        from utils.hotkey import Hotkey
+
+        self.hotkey = Hotkey(self.shortcut)
+        self.hotkey.activated.connect(
+            self.toggleRecording, Qt.ConnectionType.QueuedConnection
+        )
+        self.hotkey.start()
+
+    def applySettings(self, shortcut):
+        parts = shortcut.split("+")
+        modifiers = parts[:-1]
+        if (not modifiers or len(set(modifiers)) != len(modifiers)
+                or any(key not in ("ctrl", "alt", "shift", "win")
+                       for key in modifiers)
+                or len(parts[-1]) != 1 or not parts[-1].isascii()
+                or not parts[-1].isalnum()):
+            raise ValueError(
+                "Используйте Ctrl, Alt, Shift или Win и букву A–Z / цифру 0–9."
+            )
+        previous = self.shortcut
+        if self.hotkey is not None:
+            self.hotkey.stop()
+        self.shortcut = shortcut
+        try:
+            self.startHotkey()
+            self.settings.saveHotkey(shortcut)
+        except (OSError, ImportError, ValueError, sqlite3.Error):
+            if self.hotkey is not None:
+                self.hotkey.stop()
+            self.shortcut = previous
+            try:
+                self.startHotkey()
+            except (OSError, ImportError, ValueError) as error:
+                self.showError(
+                    f"Не удалось восстановить горячую клавишу: {error}"
+                )
+            raise
+        if self.state == "idle":
+            self.updateHotkeyHint()
+        elif self.state == "recording":
+            self.setState(
+                "recording", f"Запись… {self.shortcut.upper()} — остановить"
+            )
 
     def setState(self, state, text):
         self.state = state
@@ -116,6 +183,10 @@ class Sayte(QWidget):
         self.recordingWindow.setState(state, text)
 
     def toggleRecording(self):
+        if (self.activeEditor is not None and self.state == "idle"
+                and self.worker is None):
+            self.activeEditor.toggleRecording()
+            return
         if self.worker is not None or self.exitAfterSave:
             return
         if self.pendingText:
@@ -130,7 +201,9 @@ class Sayte(QWidget):
         except (OSError, RuntimeError, ValueError, PortAudioError) as error:
             self.showError(f"Не удалось включить микрофон: {error}")
             return
-        self.setState("recording", "Запись… Ctrl+Alt+R — остановить")
+        self.setState(
+            "recording", f"Запись… {self.shortcut.upper()} — остановить"
+        )
 
     def stopRecording(self):
         try:
@@ -207,6 +280,10 @@ class Sayte(QWidget):
         self.activateWindow()
 
     def requestExit(self):
+        if self.activeEditor is not None:
+            self.activeEditor.close()
+            if self.activeEditor.isVisible():
+                return
         if self.worker is not None or self.state == "recording":
             if self.exitAfterSave:
                 return
