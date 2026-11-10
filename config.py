@@ -17,6 +17,9 @@ def dataPath(path):
 NAME = "Sayte"
 W, H = 400, 700
 HOTKEY = "ctrl+alt+r"
+NOTE_FONT_SIZE = 12
+NOTE_FONT_MIN = 8
+NOTE_FONT_MAX = 32
 
 DB_PATH = dataPath("data/sayte.sqlite")
 ICON_PATH = resourcePath("images/sayte-icon.png")

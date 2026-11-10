@@ -3,7 +3,7 @@ import sqlite3
 from PyQt6 import uic
 from PyQt6.QtCore import QEvent, Qt
 from PyQt6.QtGui import QIcon
-from PyQt6.QtWidgets import QDialog, QMessageBox
+from PyQt6.QtWidgets import QDialog, QDialogButtonBox, QMessageBox
 
 import config
 from ui.theme import applyTheme
@@ -76,14 +76,24 @@ class SettingsWindow(QDialog):
             self.themeCombo.findData(self.window.settings.getTheme())
         )
         self.autostartCheck.setChecked(bool(getAutostart()))
+        self.fontSizeSpin.setRange(config.NOTE_FONT_MIN, config.NOTE_FONT_MAX)
+        self.fontSizeSpin.setValue(self.window.settings.getFontSize())
         self.hotkeyInput.setText(self.window.shortcut)
         self.providersButton.setIcon(QIcon(config.CPU_ICON_PATH))
         self.providersButton.clicked.connect(self.openProviders)
         self.presetsButton.clicked.connect(self.openPresets)
         self.assignButton.clicked.connect(self.assignHotkey)
-        self.resetButton.clicked.connect(self.resetSettings)
-        self.saveButton.clicked.connect(self.saveSettings)
-        self.cancelButton.clicked.connect(self.reject)
+        for role, title in (
+            (QDialogButtonBox.StandardButton.Save, "Сохранить"),
+            (QDialogButtonBox.StandardButton.Cancel, "Отмена"),
+            (QDialogButtonBox.StandardButton.RestoreDefaults, "Сбросить"),
+        ):
+            self.buttonBox.button(role).setText(title)
+        self.buttonBox.button(
+            QDialogButtonBox.StandardButton.RestoreDefaults
+        ).clicked.connect(self.resetSettings)
+        self.buttonBox.accepted.connect(self.saveSettings)
+        self.buttonBox.rejected.connect(self.reject)
 
     def openProviders(self):
         try:
@@ -127,12 +137,14 @@ class SettingsWindow(QDialog):
             self.hotkeyInput.setText(config.HOTKEY)
             self.themeCombo.setCurrentIndex(0)
             self.autostartCheck.setChecked(False)
+            self.fontSizeSpin.setValue(config.NOTE_FONT_SIZE)
 
     def saveSettings(self):
         shortcut = self.hotkeyInput.text().replace(" ", "").lower()
         try:
             previous = self.window.shortcut
             oldTheme = self.window.settings.getTheme()
+            oldFontSize = self.window.settings.getFontSize()
             oldCommand = getAutostart()
         except (OSError, sqlite3.Error) as error:
             QMessageBox.warning(self, "Настройки", str(error))
@@ -144,12 +156,14 @@ class SettingsWindow(QDialog):
                 setAutostart(command)
             self.window.applySettings(shortcut)
             self.window.settings.saveTheme(theme)
+            self.window.settings.saveFontSize(self.fontSizeSpin.value())
             applyTheme(theme)
         except (OSError, ImportError, ValueError, sqlite3.Error) as error:
             for restore in (
                 lambda: setAutostart(oldCommand),
                 lambda: self.window.applySettings(previous),
                 lambda: self.window.settings.saveTheme(oldTheme),
+                lambda: self.window.settings.saveFontSize(oldFontSize),
                 lambda: applyTheme(oldTheme),
             ):
                 try:

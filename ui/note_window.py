@@ -33,6 +33,11 @@ class NoteWindow(QDialog):
 
     def initUI(self):
         uic.loadUi(config.NOTE_UI_PATH, self)
+        self.editorSplitter.setStretchFactor(0, 1)
+        self.editorSplitter.setStretchFactor(1, 0)
+        font = self.editor.font()
+        font.setPointSize(self.window.settings.getFontSize())
+        self.editor.setFont(font)
         self.pinButton.setChecked(self.originalPinned)
         self.updatePinButton()
         self.pinButton.toggled.connect(self.updatePinButton)
