@@ -22,7 +22,7 @@ class Recorder:
             samplerate=config.SAMPLE_RATE,
             channels=1,
             dtype="float32",
-            callback=self.recordAudio,
+            callback=self.record_audio,
         )
         try:
             self.stream.start()
@@ -30,7 +30,7 @@ class Recorder:
             self.close()
             raise
 
-    def recordAudio(self, data, frames, time, status):
+    def record_audio(self, data, frames, time, status):
         if status:
             self.error = str(status)
         self.frames.append(data[:, 0].copy())

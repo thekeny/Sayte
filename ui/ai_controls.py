@@ -3,7 +3,7 @@ from PyQt6.QtGui import QIcon
 import config
 
 
-def profileIcon(profile):
+def profile_icon(profile):
     path = (
         config.OPENROUTER_ICON_PATH
         if profile["kind"] == "openrouter"
@@ -12,14 +12,14 @@ def profileIcon(profile):
     return QIcon(path)
 
 
-def modelId(combo):
+def model_id(combo):
     index = combo.currentIndex()
     if index >= 0 and combo.currentText() == combo.itemText(index):
         return combo.itemData(index)
     return combo.currentText().strip()
 
 
-def fillModels(combo, models, selected):
+def fill_models(combo, models, selected):
     combo.clear()
     for model in models:
         name, identifier = model["name"], model["id"]

@@ -5,10 +5,10 @@ datas = [("ui/*.ui", "ui"), ("images/*", "images")]
 binaries = []
 hiddenimports = ["ui.spinner", "ui.voice_wave"]
 for package in ("faster_whisper", "ctranslate2", "av", "sounddevice"):
-    packageData, packageBinaries, packageImports = collect_all(package)
-    datas += packageData
-    binaries += packageBinaries
-    hiddenimports += packageImports
+    package_data, package_binaries, package_imports = collect_all(package)
+    datas += package_data
+    binaries += package_binaries
+    hiddenimports += package_imports
 for package in ("faster-whisper", "huggingface-hub"):
     datas += copy_metadata(package, recursive=True)
 

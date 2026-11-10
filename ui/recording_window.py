@@ -7,46 +7,46 @@ import config
 
 
 class RecordingWindow(QWidget):
-    stopRequested = pyqtSignal()
+    stop_requested = pyqtSignal()
 
     def __init__(self, recorder):
         super().__init__()
         self.recorder = recorder
         self.busy = False
-        self.initUI()
+        self.init_ui()
 
-    def initUI(self):
+    def init_ui(self):
         uic.loadUi(config.RECORDING_UI_PATH, self)
         self.setWindowIcon(QIcon(config.ICON_PATH))
         self.setWindowFlags(
             Qt.WindowType.Tool | Qt.WindowType.WindowStaysOnTopHint
         )
         self.spinner.hide()
-        self.downloadLabel.hide()
-        self.stopButton.clicked.connect(self.stopRequested.emit)
-        self.waveTimer = QTimer(self)
-        self.waveTimer.setInterval(config.WAVE_INTERVAL_MS)
-        self.waveTimer.timeout.connect(self.updateWave)
-        self.hideTimer = QTimer(self)
-        self.hideTimer.setSingleShot(True)
-        self.hideTimer.timeout.connect(self.hide)
+        self.download_label.hide()
+        self.stop_button.clicked.connect(self.stop_requested.emit)
+        self.wave_timer = QTimer(self)
+        self.wave_timer.setInterval(config.WAVE_INTERVAL_MS)
+        self.wave_timer.timeout.connect(self.update_wave)
+        self.hide_timer = QTimer(self)
+        self.hide_timer.setSingleShot(True)
+        self.hide_timer.timeout.connect(self.hide)
 
-    def setState(self, state, text):
-        self.hideTimer.stop()
+    def set_state(self, state, text):
+        self.hide_timer.stop()
         self.busy = state in ("recording", "processing")
         processing = state == "processing"
         self.label.setText(config.PROCESSING_TEXT if processing else text)
         self.spinner.setVisible(processing)
         downloading = processing and text == config.MODEL_DOWNLOAD_TEXT
-        self.downloadLabel.setText(config.MODEL_DOWNLOAD_TEXT)
-        self.downloadLabel.setVisible(downloading)
-        self.stopButton.setVisible(state == "recording")
+        self.download_label.setText(config.MODEL_DOWNLOAD_TEXT)
+        self.download_label.setVisible(downloading)
+        self.stop_button.setVisible(state == "recording")
         self.wave.setVisible(state == "recording")
         if state == "recording":
             self.wave.levels = [0.0] * config.WAVE_LEVEL_COUNT
-            self.waveTimer.start()
+            self.wave_timer.start()
         else:
-            self.waveTimer.stop()
+            self.wave_timer.stop()
         screen = QApplication.screenAt(QCursor.pos())
         if screen is None:
             screen = QApplication.primaryScreen()
@@ -57,10 +57,10 @@ class RecordingWindow(QWidget):
         frame.moveBottomRight(geometry.bottomRight() - QPoint(margin, margin))
         self.move(frame.topLeft())
         if not self.busy:
-            self.hideTimer.start(config.HIDE_MESSAGE_MS)
+            self.hide_timer.start(config.HIDE_MESSAGE_MS)
 
-    def updateWave(self):
-        self.wave.addLevel(self.recorder.level)
+    def update_wave(self):
+        self.wave.add_level(self.recorder.level)
 
     def closeEvent(self, event):
         if self.busy:

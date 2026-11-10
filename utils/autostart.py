@@ -6,7 +6,7 @@ import winreg
 import config
 
 
-def getCommand():
+def get_command():
     executable = sys.executable
     if getattr(sys, "frozen", False):
         args = [executable]
@@ -16,7 +16,7 @@ def getCommand():
     return subprocess.list2cmdline(args + ["--start-in-tray"])
 
 
-def getAutostart():
+def get_autostart():
     try:
         with winreg.OpenKey(
             winreg.HKEY_CURRENT_USER, config.AUTOSTART_KEY
@@ -26,7 +26,7 @@ def getAutostart():
         return None
 
 
-def setAutostart(command):
+def set_autostart(command):
     with winreg.CreateKey(
         winreg.HKEY_CURRENT_USER, config.AUTOSTART_KEY
     ) as key:

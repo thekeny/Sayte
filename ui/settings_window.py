@@ -6,8 +6,8 @@ from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QDialog, QDialogButtonBox, QMessageBox
 
 import config
-from ui.theme import applyTheme
-from utils.autostart import getAutostart, getCommand, setAutostart
+from ui.theme import apply_theme
+from utils.autostart import get_autostart, get_command, set_autostart
 from ui.provider_window import ProviderWindow
 from ui.preset_window import PresetWindow
 
@@ -16,11 +16,11 @@ class HotkeyDialog(QDialog):
     def __init__(self, parent):
         super().__init__(parent)
         self.shortcut = ""
-        self.initUI()
+        self.init_ui()
 
-    def initUI(self):
+    def init_ui(self):
         uic.loadUi(config.HOTKEY_UI_PATH, self)
-        self.cancelButton.clicked.connect(self.reject)
+        self.cancel_button.clicked.connect(self.reject)
 
     def event(self, event):
         if event.type() == QEvent.Type.ShortcutOverride:
@@ -66,36 +66,38 @@ class SettingsWindow(QDialog):
     def __init__(self, window):
         super().__init__(window)
         self.window = window
-        self.initUI()
+        self.init_ui()
 
-    def initUI(self):
+    def init_ui(self):
         uic.loadUi(config.SETTINGS_UI_PATH, self)
-        self.themeCombo.addItem("Светлая", "light")
-        self.themeCombo.addItem("Тёмная", "dark")
-        self.themeCombo.setCurrentIndex(
-            self.themeCombo.findData(self.window.settings.getTheme())
+        self.theme_combo.addItem("Светлая", "light")
+        self.theme_combo.addItem("Тёмная", "dark")
+        self.theme_combo.setCurrentIndex(
+            self.theme_combo.findData(self.window.settings.get_theme())
         )
-        self.autostartCheck.setChecked(bool(getAutostart()))
-        self.fontSizeSpin.setRange(config.NOTE_FONT_MIN, config.NOTE_FONT_MAX)
-        self.fontSizeSpin.setValue(self.window.settings.getFontSize())
-        self.hotkeyInput.setText(self.window.shortcut)
-        self.providersButton.setIcon(QIcon(config.CPU_ICON_PATH))
-        self.providersButton.clicked.connect(self.openProviders)
-        self.presetsButton.clicked.connect(self.openPresets)
-        self.assignButton.clicked.connect(self.assignHotkey)
+        self.autostart_check.setChecked(bool(get_autostart()))
+        self.font_size_spin.setRange(
+            config.NOTE_FONT_MIN, config.NOTE_FONT_MAX
+        )
+        self.font_size_spin.setValue(self.window.settings.get_font_size())
+        self.hotkey_input.setText(self.window.shortcut)
+        self.providers_button.setIcon(QIcon(config.CPU_ICON_PATH))
+        self.providers_button.clicked.connect(self.open_providers)
+        self.presets_button.clicked.connect(self.open_presets)
+        self.assign_button.clicked.connect(self.assign_hotkey)
         for role, title in (
             (QDialogButtonBox.StandardButton.Save, "Сохранить"),
             (QDialogButtonBox.StandardButton.Cancel, "Отмена"),
             (QDialogButtonBox.StandardButton.RestoreDefaults, "Сбросить"),
         ):
-            self.buttonBox.button(role).setText(title)
-        self.buttonBox.button(
+            self.button_box.button(role).setText(title)
+        self.button_box.button(
             QDialogButtonBox.StandardButton.RestoreDefaults
-        ).clicked.connect(self.resetSettings)
-        self.buttonBox.accepted.connect(self.saveSettings)
-        self.buttonBox.rejected.connect(self.reject)
+        ).clicked.connect(self.reset_settings)
+        self.button_box.accepted.connect(self.save_settings)
+        self.button_box.rejected.connect(self.reject)
 
-    def openProviders(self):
+    def open_providers(self):
         try:
             ProviderWindow(self.window.providers, self).exec()
         except sqlite3.Error:
@@ -103,13 +105,13 @@ class SettingsWindow(QDialog):
                 self, "Подключения ИИ", "Не удалось загрузить подключения."
             )
 
-    def openPresets(self):
+    def open_presets(self):
         try:
             PresetWindow(self.window.presets, self).exec()
         except sqlite3.Error:
             QMessageBox.warning(self, "Действия ИИ", "Ошибка чтения действий.")
 
-    def assignHotkey(self):
+    def assign_hotkey(self):
         hotkey = self.window.hotkey
         resume = hotkey is not None and hotkey.registered
         if resume:
@@ -117,7 +119,7 @@ class SettingsWindow(QDialog):
         try:
             dialog = HotkeyDialog(self)
             if dialog.exec() == QDialog.DialogCode.Accepted:
-                self.hotkeyInput.setText(dialog.shortcut)
+                self.hotkey_input.setText(dialog.shortcut)
         finally:
             if resume:
                 try:
@@ -125,7 +127,7 @@ class SettingsWindow(QDialog):
                 except (OSError, ValueError) as error:
                     QMessageBox.warning(self, "Горячая клавиша", str(error))
 
-    def resetSettings(self):
+    def reset_settings(self):
         answer = QMessageBox.question(
             self,
             "Сброс настроек",
@@ -134,37 +136,39 @@ class SettingsWindow(QDialog):
             QMessageBox.StandardButton.No,
         )
         if answer == QMessageBox.StandardButton.Yes:
-            self.hotkeyInput.setText(config.HOTKEY)
-            self.themeCombo.setCurrentIndex(0)
-            self.autostartCheck.setChecked(False)
-            self.fontSizeSpin.setValue(config.NOTE_FONT_SIZE)
+            self.hotkey_input.setText(config.HOTKEY)
+            self.theme_combo.setCurrentIndex(0)
+            self.autostart_check.setChecked(False)
+            self.font_size_spin.setValue(config.NOTE_FONT_SIZE)
 
-    def saveSettings(self):
-        shortcut = self.hotkeyInput.text().replace(" ", "").lower()
+    def save_settings(self):
+        shortcut = self.hotkey_input.text().replace(" ", "").lower()
         try:
             previous = self.window.shortcut
-            oldTheme = self.window.settings.getTheme()
-            oldFontSize = self.window.settings.getFontSize()
-            oldCommand = getAutostart()
+            old_theme = self.window.settings.get_theme()
+            old_font_size = self.window.settings.get_font_size()
+            old_command = get_autostart()
         except (OSError, sqlite3.Error) as error:
             QMessageBox.warning(self, "Настройки", str(error))
             return
-        theme = self.themeCombo.currentData()
+        theme = self.theme_combo.currentData()
         try:
-            command = getCommand() if self.autostartCheck.isChecked() else None
-            if command != oldCommand:
-                setAutostart(command)
-            self.window.applySettings(shortcut)
-            self.window.settings.saveTheme(theme)
-            self.window.settings.saveFontSize(self.fontSizeSpin.value())
-            applyTheme(theme)
+            command = (
+                get_command() if self.autostart_check.isChecked() else None
+            )
+            if command != old_command:
+                set_autostart(command)
+            self.window.apply_settings(shortcut)
+            self.window.settings.save_theme(theme)
+            self.window.settings.save_font_size(self.font_size_spin.value())
+            apply_theme(theme)
         except (OSError, ImportError, ValueError, sqlite3.Error) as error:
             for restore in (
-                lambda: setAutostart(oldCommand),
-                lambda: self.window.applySettings(previous),
-                lambda: self.window.settings.saveTheme(oldTheme),
-                lambda: self.window.settings.saveFontSize(oldFontSize),
-                lambda: applyTheme(oldTheme),
+                lambda: set_autostart(old_command),
+                lambda: self.window.apply_settings(previous),
+                lambda: self.window.settings.save_theme(old_theme),
+                lambda: self.window.settings.save_font_size(old_font_size),
+                lambda: apply_theme(old_theme),
             ):
                 try:
                     restore()

@@ -19,14 +19,14 @@
   <property name="windowTitle">
    <string>Sayte</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,1,0,0">
+  <layout class="QVBoxLayout" name="vertical_layout" stretch="0,0,0,0,1,0,0">
    <property name="spacing">
     <number>12</number>
    </property>
    <item>
-    <layout class="QHBoxLayout" name="headerLayout">
+    <layout class="QHBoxLayout" name="header_layout">
      <item>
-      <spacer name="headerSpacer">
+      <spacer name="header_spacer">
        <property name="orientation">
         <enum>Qt::Orientation::Horizontal</enum>
        </property>
@@ -39,7 +39,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="settingsButton">
+      <widget class="QPushButton" name="settings_button">
        <property name="minimumSize">
         <size>
          <width>36</width>
@@ -70,7 +70,7 @@
     </layout>
    </item>
    <item alignment="Qt::AlignmentFlag::AlignHCenter">
-    <widget class="QLabel" name="logoLabel">
+    <widget class="QLabel" name="logo_label">
      <property name="alignment">
       <set>Qt::AlignmentFlag::AlignCenter</set>
      </property>
@@ -92,9 +92,9 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="searchLayout">
+    <layout class="QHBoxLayout" name="search_layout">
      <item>
-      <widget class="QLineEdit" name="searchInput">
+      <widget class="QLineEdit" name="search_input">
        <property name="placeholderText">
         <string>Поиск по заметкам</string>
        </property>
@@ -104,7 +104,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QComboBox" name="tagFilter">
+      <widget class="QComboBox" name="tag_filter">
        <property name="minimumSize">
         <size>
          <width>160</width>
@@ -122,7 +122,7 @@
     </layout>
    </item>
    <item>
-    <widget class="QLabel" name="emptyLabel">
+    <widget class="QLabel" name="empty_label">
      <property name="text">
       <string>Заметок пока нет. Начните запись.</string>
      </property>
@@ -132,7 +132,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QListWidget" name="notesList">
+    <widget class="QListWidget" name="notes_list">
      <property name="spacing">
       <number>6</number>
      </property>
@@ -143,7 +143,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="statusLabel">
+    <widget class="QLabel" name="status_label">
      <property name="text">
       <string>Ctrl+Alt+R — начать или остановить запись</string>
      </property>
@@ -153,7 +153,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="recordButton">
+    <widget class="QPushButton" name="record_button">
      <property name="minimumSize">
       <size>
        <width>0</width>

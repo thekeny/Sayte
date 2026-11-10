@@ -6,7 +6,7 @@ from PyQt6.QtWidgets import QDialog, QPushButton
 from sounddevice import PortAudioError
 
 import config
-from ai.presets import getBuiltinPresets
+from ai.presets import get_builtin_presets
 from ai.worker import AiWorker
 
 
@@ -17,160 +17,160 @@ class PreviewWindow(QDialog):
         self.presets = presets
         self.text = text
         self.worker = None
-        self.voiceWorker = None
+        self.voice_worker = None
         self.recording = False
         self.window = parent.window if parent is not None else None
-        self.resultReady = False
-        self.initUI()
+        self.result_ready = False
+        self.init_ui()
 
-    def initUI(self):
+    def init_ui(self):
         uic.loadUi(config.PREVIEW_UI_PATH, self)
         for button in self.findChildren(QPushButton):
             button.setAutoDefault(False)
-        self.sourceEditor.setPlainText(self.text)
-        self.applyButton.setVisible(False)
-        self.promptVoiceButton.setIcon(QIcon(config.MICROPHONE_ICON_PATH))
-        self.promptVoiceButton.clicked.connect(self.toggleRecording)
-        self.presetCombo.currentIndexChanged.connect(self.changePreset)
-        self.loadActions()
-        self.runButton.clicked.connect(self.processText)
-        self.applyButton.clicked.connect(self.applyResult)
-        self.cancelButton.clicked.connect(self.reject)
-        self.resultEditor.textChanged.connect(self.updateApplyButton)
+        self.source_editor.setPlainText(self.text)
+        self.apply_button.setVisible(False)
+        self.prompt_voice_button.setIcon(QIcon(config.MICROPHONE_ICON_PATH))
+        self.prompt_voice_button.clicked.connect(self.toggle_recording)
+        self.preset_combo.currentIndexChanged.connect(self.change_preset)
+        self.load_actions()
+        self.run_button.clicked.connect(self.process_text)
+        self.apply_button.clicked.connect(self.apply_result)
+        self.cancel_button.clicked.connect(self.reject)
+        self.result_editor.textChanged.connect(self.update_apply_button)
 
-    def loadActions(self):
-        for preset in getBuiltinPresets() + self.presets.getPresets():
-            self.presetCombo.addItem(preset["name"], preset)
-        self.presetCombo.addItem("Свой запрос", None)
-        self.changePreset()
+    def load_actions(self):
+        for preset in get_builtin_presets() + self.presets.get_presets():
+            self.preset_combo.addItem(preset["name"], preset)
+        self.preset_combo.addItem("Свой запрос", None)
+        self.change_preset()
 
-    def changePreset(self):
-        preset = self.presetCombo.currentData()
-        self.promptInput.setPlainText(preset["prompt"] if preset else "")
-        self.promptInput.setVisible(preset is None)
-        self.promptVoiceButton.setVisible(preset is None)
+    def change_preset(self):
+        preset = self.preset_combo.currentData()
+        self.prompt_input.setPlainText(preset["prompt"] if preset else "")
+        self.prompt_input.setVisible(preset is None)
+        self.prompt_voice_button.setVisible(preset is None)
 
-    def toggleRecording(self):
-        if self.worker is not None or self.voiceWorker is not None:
+    def toggle_recording(self):
+        if self.worker is not None or self.voice_worker is not None:
             return
         if self.recording:
-            self.stopRecording()
+            self.stop_recording()
             return
-        if self.presetCombo.currentData() is not None:
+        if self.preset_combo.currentData() is not None:
             return
         if (
             self.window is None
             or self.window.state != "idle"
             or self.window.worker is not None
         ):
-            self.promptVoiceButton.setChecked(False)
-            self.statusLabel.setText(config.PROMPT_VOICE_MESSAGES["busy"])
+            self.prompt_voice_button.setChecked(False)
+            self.status_label.setText(config.PROMPT_VOICE_MESSAGES["busy"])
             return
         try:
-            self.window.session.startRecording(self)
+            self.window.session.start_recording(self)
         except (OSError, RuntimeError, ValueError, PortAudioError) as error:
-            self.promptVoiceButton.setChecked(False)
-            self.statusLabel.setText(
+            self.prompt_voice_button.setChecked(False)
+            self.status_label.setText(
                 config.PROMPT_VOICE_MESSAGES["start_error"].format(error=error)
             )
             return
         self.recording = True
-        self.setVoiceBusy(True)
-        self.promptVoiceButton.setChecked(True)
-        self.promptVoiceButton.setText(config.PROMPT_VOICE_MESSAGES["stop"])
-        self.statusLabel.setText(config.PROMPT_VOICE_MESSAGES["recording"])
+        self.set_voice_busy(True)
+        self.prompt_voice_button.setChecked(True)
+        self.prompt_voice_button.setText(config.PROMPT_VOICE_MESSAGES["stop"])
+        self.status_label.setText(config.PROMPT_VOICE_MESSAGES["recording"])
 
-    def setVoiceBusy(self, busy):
-        self.presetCombo.setEnabled(not busy)
-        self.runButton.setEnabled(not busy)
-        self.cancelButton.setEnabled(not busy)
+    def set_voice_busy(self, busy):
+        self.preset_combo.setEnabled(not busy)
+        self.run_button.setEnabled(not busy)
+        self.cancel_button.setEnabled(not busy)
         if busy:
-            self.applyButton.setEnabled(False)
+            self.apply_button.setEnabled(False)
         else:
-            self.updateApplyButton()
+            self.update_apply_button()
 
-    def stopRecording(self):
+    def stop_recording(self):
         self.recording = False
-        self.promptVoiceButton.setChecked(False)
+        self.prompt_voice_button.setChecked(False)
         try:
-            audio = self.window.session.stopRecording(self)
+            audio = self.window.session.stop_recording(self)
         except (OSError, RuntimeError, ValueError, PortAudioError) as error:
-            self.statusLabel.setText(
+            self.status_label.setText(
                 config.PROMPT_VOICE_MESSAGES["record_error"].format(
                     error=error
                 )
             )
-            self.finishRecording()
+            self.finish_recording()
             return
         if audio.size == 0:
-            self.statusLabel.setText(config.PROMPT_VOICE_MESSAGES["empty"])
-            self.finishRecording()
+            self.status_label.setText(config.PROMPT_VOICE_MESSAGES["empty"])
+            self.finish_recording()
             return
-        self.promptVoiceButton.setEnabled(False)
-        self.statusLabel.setText(config.PROCESSING_TEXT)
-        self.voiceWorker = self.window.session.transcribe(
+        self.prompt_voice_button.setEnabled(False)
+        self.status_label.setText(config.PROCESSING_TEXT)
+        self.voice_worker = self.window.session.transcribe(
             self,
             audio,
-            self.appendPrompt,
-            self.voiceError,
-            self.finishRecording,
-            self.statusLabel.setText,
+            self.append_prompt,
+            self.voice_error,
+            self.finish_recording,
+            self.status_label.setText,
         )
 
-    def appendPrompt(self, text):
+    def append_prompt(self, text):
         text = text.strip()
         if not text:
-            self.statusLabel.setText(config.PROMPT_VOICE_MESSAGES["empty"])
+            self.status_label.setText(config.PROMPT_VOICE_MESSAGES["empty"])
             return
-        current = self.promptInput.toPlainText()
+        current = self.prompt_input.toPlainText()
         separator = " " if current and not current[-1].isspace() else ""
-        cursor = self.promptInput.textCursor()
+        cursor = self.prompt_input.textCursor()
         cursor.movePosition(QTextCursor.MoveOperation.End)
         cursor.beginEditBlock()
         cursor.insertText(separator + text)
         cursor.endEditBlock()
-        self.promptInput.setTextCursor(cursor)
-        self.promptInput.ensureCursorVisible()
-        self.statusLabel.setText(config.PROMPT_VOICE_MESSAGES["ready"])
+        self.prompt_input.setTextCursor(cursor)
+        self.prompt_input.ensureCursorVisible()
+        self.status_label.setText(config.PROMPT_VOICE_MESSAGES["ready"])
 
-    def voiceError(self, message):
-        self.statusLabel.setText(
+    def voice_error(self, message):
+        self.status_label.setText(
             config.PROMPT_VOICE_MESSAGES["error"].format(error=message)
         )
 
-    def finishRecording(self):
-        if self.voiceWorker is not None:
-            self.voiceWorker = None
-        self.promptVoiceButton.setEnabled(True)
-        self.promptVoiceButton.setChecked(False)
-        self.promptVoiceButton.setText(config.PROMPT_VOICE_MESSAGES["idle"])
-        self.setVoiceBusy(False)
+    def finish_recording(self):
+        if self.voice_worker is not None:
+            self.voice_worker = None
+        self.prompt_voice_button.setEnabled(True)
+        self.prompt_voice_button.setChecked(False)
+        self.prompt_voice_button.setText(config.PROMPT_VOICE_MESSAGES["idle"])
+        self.set_voice_busy(False)
 
-    def currentProfile(self):
-        activeId = self.providers.getActiveProfile()
-        profiles = self.providers.getProfiles()
+    def current_profile(self):
+        active_id = self.providers.get_active_profile()
+        profiles = self.providers.get_profiles()
         profile = next(
-            (row for row in profiles if row["id"] == activeId), None
+            (row for row in profiles if row["id"] == active_id), None
         )
         if profile is None or not profile["model"]:
             raise ValueError(
                 "Выберите подключение и модель в настройках → Подключения ИИ."
             )
-        self.providers.validateProfile(profile)
+        self.providers.validate_profile(profile)
         return profile
 
-    def processText(self):
+    def process_text(self):
         if (
             self.worker is not None
             or self.recording
-            or self.voiceWorker is not None
+            or self.voice_worker is not None
         ):
             return
         try:
-            profile = self.currentProfile()
+            profile = self.current_profile()
             if (
                 not profile["model"]
-                or not self.promptInput.toPlainText().strip()
+                or not self.prompt_input.toPlainText().strip()
             ):
                 raise ValueError("Укажите модель и промпт.")
             if not self.text.strip():
@@ -178,76 +178,80 @@ class PreviewWindow(QDialog):
             if profile["kind"] == "openrouter" and not profile["api_key"]:
                 raise ValueError("Укажите API-ключ в подключениях.")
         except (sqlite3.Error, ValueError) as error:
-            self.statusLabel.setText(str(error))
+            self.status_label.setText(str(error))
             return
-        self.resultReady = False
-        self.resultEditor.clear()
-        self.startRequest(profile)
+        self.result_ready = False
+        self.result_editor.clear()
+        self.start_request(profile)
 
-    def startRequest(self, profile):
+    def start_request(self, profile):
         self.controls.setEnabled(False)
-        self.cancelButton.setEnabled(False)
-        self.applyButton.setEnabled(False)
-        self.resultEditor.setReadOnly(True)
-        self.statusLabel.setText("ИИ обрабатывает заметку…")
+        self.cancel_button.setEnabled(False)
+        self.apply_button.setEnabled(False)
+        self.result_editor.setReadOnly(True)
+        self.status_label.setText("ИИ обрабатывает заметку…")
         self.worker = AiWorker(
-            profile, "process", self.promptInput.toPlainText(), self.text, self
+            profile,
+            "process",
+            self.prompt_input.toPlainText(),
+            self.text,
+            self,
         )
-        self.worker.result.connect(self.showResult)
-        self.worker.error.connect(self.statusLabel.setText)
-        self.worker.finished.connect(self.finishRequest)
+        self.worker.result.connect(self.show_result)
+        self.worker.error.connect(self.status_label.setText)
+        self.worker.finished.connect(self.finish_request)
         self.worker.start()
 
-    def showResult(self, text):
-        self.resultReady = True
-        self.resultEditor.setPlainText(text)
-        self.textTabs.setCurrentIndex(0)
-        self.applyButton.setVisible(True)
-        self.runButton.setText("Попробовать ещё раз")
-        self.statusLabel.clear()
+    def show_result(self, text):
+        self.result_ready = True
+        self.result_editor.setPlainText(text)
+        self.text_tabs.setCurrentIndex(0)
+        self.apply_button.setVisible(True)
+        self.run_button.setText("Попробовать ещё раз")
+        self.status_label.clear()
 
-    def updateApplyButton(self):
-        self.applyButton.setEnabled(
+    def update_apply_button(self):
+        self.apply_button.setEnabled(
             self.worker is None
-            and self.resultReady
+            and self.result_ready
             and not self.recording
-            and self.voiceWorker is None
-            and bool(self.resultEditor.toPlainText().strip())
+            and self.voice_worker is None
+            and bool(self.result_editor.toPlainText().strip())
         )
 
-    def finishRequest(self):
+    def finish_request(self):
         self.worker.deleteLater()
         self.worker = None
         self.controls.setEnabled(True)
-        self.cancelButton.setEnabled(True)
-        self.resultEditor.setReadOnly(False)
-        self.updateApplyButton()
+        self.cancel_button.setEnabled(True)
+        self.result_editor.setReadOnly(False)
+        self.update_apply_button()
 
-    def applyResult(self):
+    def apply_result(self):
         if (
             self.worker is None
             and not self.recording
-            and self.voiceWorker is None
-            and self.resultReady
-            and self.resultEditor.toPlainText().strip()
+            and self.voice_worker is None
+            and self.result_ready
+            and self.result_editor.toPlainText().strip()
         ):
             self.accept()
 
     def done(self, result):
-        if self.recording or self.voiceWorker is not None:
-            self.statusLabel.setText(config.PROMPT_VOICE_MESSAGES["wait"])
+        if self.recording or self.voice_worker is not None:
+            self.status_label.setText(config.PROMPT_VOICE_MESSAGES["wait"])
             return
         if self.worker is not None:
-            self.statusLabel.setText("Дождитесь завершения запроса к ИИ.")
+            self.status_label.setText("Дождитесь завершения запроса к ИИ.")
             return
         super().done(result)
 
     def closeEvent(self, event):
-        if self.recording or self.voiceWorker is not None:
+        if self.recording or self.voice_worker is not None:
             event.ignore()
-            self.statusLabel.setText(config.PROMPT_VOICE_MESSAGES["wait"])
+            self.status_label.setText(config.PROMPT_VOICE_MESSAGES["wait"])
         elif self.worker is not None:
             event.ignore()
-            self.statusLabel.setText("Дождитесь завершения запроса к ИИ.")
+            self.status_label.setText("Дождитесь завершения запроса к ИИ.")
         else:
             super().closeEvent(event)

@@ -11,13 +11,13 @@ class RecordingSession(QObject):
         self.target = None
         self.worker = None
 
-    def startRecording(self, target):
+    def start_recording(self, target):
         if self.target is not None:
             raise RuntimeError("Дождитесь завершения текущей записи.")
         self.recorder.start()
         self.target = target
 
-    def stopRecording(self, target):
+    def stop_recording(self, target):
         if self.target is not target or self.worker is not None:
             raise RuntimeError("Запись принадлежит другому окну.")
         try:
@@ -34,12 +34,12 @@ class RecordingSession(QObject):
         self.worker.error.connect(error)
         if status is not None:
             self.worker.status.connect(status)
-        self.worker.finished.connect(self.finishProcessing)
+        self.worker.finished.connect(self.finish_processing)
         self.worker.finished.connect(finished)
         self.worker.start()
         return self.worker
 
-    def finishProcessing(self):
+    def finish_processing(self):
         self.worker.deleteLater()
         self.worker = None
         self.target = None

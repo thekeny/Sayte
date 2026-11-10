@@ -3,18 +3,18 @@
  <widget class="QDialog" name="SettingsWindow">
   <property name="geometry"><rect><x>0</x><y>0</y><width>400</width><height>180</height></rect></property>
   <property name="windowTitle"><string>Настройки Sayte</string></property>
-  <layout class="QVBoxLayout" name="verticalLayout">
-   <item><widget class="QLabel" name="themeLabel"><property name="text"><string>Тема:</string></property></widget></item>
-   <item><widget class="QComboBox" name="themeCombo"/></item>
-   <item><widget class="QLabel" name="fontSizeLabel"><property name="text"><string>Размер текста заметки:</string></property><property name="buddy"><cstring>fontSizeSpin</cstring></property></widget></item>
-   <item><widget class="QSpinBox" name="fontSizeSpin"><property name="suffix"><string> пт</string></property></widget></item>
-   <item><widget class="QCheckBox" name="autostartCheck"><property name="text"><string>Запускать вместе с Windows в трее</string></property></widget></item>
-   <item><widget class="QLabel" name="hotkeyLabel"><property name="text"><string>Горячая клавиша записи:</string></property></widget></item>
-   <item><widget class="QLineEdit" name="hotkeyInput"><property name="readOnly"><bool>true</bool></property></widget></item>
-   <item><widget class="QPushButton" name="assignButton"><property name="text"><string>Назначить сочетание</string></property></widget></item>
-   <item><widget class="QPushButton" name="providersButton"><property name="text"><string>Подключения ИИ…</string></property><property name="autoDefault"><bool>false</bool></property></widget></item>
-   <item><widget class="QPushButton" name="presetsButton"><property name="text"><string>Свои действия ИИ…</string></property><property name="autoDefault"><bool>false</bool></property></widget></item>
-   <item><widget class="QDialogButtonBox" name="buttonBox"><property name="standardButtons"><set>QDialogButtonBox::Cancel|QDialogButtonBox::RestoreDefaults|QDialogButtonBox::Save</set></property></widget></item>
+  <layout class="QVBoxLayout" name="vertical_layout">
+   <item><widget class="QLabel" name="theme_label"><property name="text"><string>Тема:</string></property></widget></item>
+   <item><widget class="QComboBox" name="theme_combo"/></item>
+   <item><widget class="QLabel" name="font_size_label"><property name="text"><string>Размер текста заметки:</string></property><property name="buddy"><cstring>font_size_spin</cstring></property></widget></item>
+   <item><widget class="QSpinBox" name="font_size_spin"><property name="suffix"><string> пт</string></property></widget></item>
+   <item><widget class="QCheckBox" name="autostart_check"><property name="text"><string>Запускать вместе с Windows в трее</string></property></widget></item>
+   <item><widget class="QLabel" name="hotkey_label"><property name="text"><string>Горячая клавиша записи:</string></property></widget></item>
+   <item><widget class="QLineEdit" name="hotkey_input"><property name="readOnly"><bool>true</bool></property></widget></item>
+   <item><widget class="QPushButton" name="assign_button"><property name="text"><string>Назначить сочетание</string></property></widget></item>
+   <item><widget class="QPushButton" name="providers_button"><property name="text"><string>Подключения ИИ…</string></property><property name="autoDefault"><bool>false</bool></property></widget></item>
+   <item><widget class="QPushButton" name="presets_button"><property name="text"><string>Свои действия ИИ…</string></property><property name="autoDefault"><bool>false</bool></property></widget></item>
+   <item><widget class="QDialogButtonBox" name="button_box"><property name="standardButtons"><set>QDialogButtonBox::Cancel|QDialogButtonBox::RestoreDefaults|QDialogButtonBox::Save</set></property></widget></item>
   </layout>
  </widget>
  <resources />

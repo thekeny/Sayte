@@ -2,21 +2,21 @@
 <ui version="4.0"><class>PreviewWindow</class><widget class="QDialog" name="PreviewWindow">
 <property name="windowTitle"><string>Редактирование с ИИ</string></property>
 <property name="geometry"><rect><x>0</x><y>0</y><width>660</width><height>620</height></rect></property>
-<layout class="QVBoxLayout" name="verticalLayout">
+<layout class="QVBoxLayout" name="vertical_layout">
 <property name="spacing"><number>12</number></property>
-<item><widget class="QWidget" name="controls"><layout class="QVBoxLayout" name="controlsLayout">
+<item><widget class="QWidget" name="controls"><layout class="QVBoxLayout" name="controls_layout">
 <property name="leftMargin"><number>0</number></property><property name="rightMargin"><number>0</number></property>
-<item><widget class="QComboBox" name="presetCombo"><property name="accessibleName"><string>Действие с заметкой</string></property><property name="minimumHeight"><number>34</number></property></widget></item>
-<item><widget class="QPlainTextEdit" name="promptInput"><property name="placeholderText"><string>Запрос</string></property><property name="maximumHeight"><number>90</number></property></widget></item>
-<item><widget class="QPushButton" name="promptVoiceButton"><property name="text"><string>Продиктовать запрос</string></property><property name="checkable"><bool>true</bool></property><property name="accessibleName"><string>Голосовой ввод запроса для ИИ</string></property></widget></item>
-<item><widget class="QPushButton" name="runButton"><property name="text"><string>Обработать заметку</string></property><property name="minimumHeight"><number>36</number></property></widget></item>
+<item><widget class="QComboBox" name="preset_combo"><property name="accessibleName"><string>Действие с заметкой</string></property><property name="minimumHeight"><number>34</number></property></widget></item>
+<item><widget class="QPlainTextEdit" name="prompt_input"><property name="placeholderText"><string>Запрос</string></property><property name="maximumHeight"><number>90</number></property></widget></item>
+<item><widget class="QPushButton" name="prompt_voice_button"><property name="text"><string>Продиктовать запрос</string></property><property name="checkable"><bool>true</bool></property><property name="accessibleName"><string>Голосовой ввод запроса для ИИ</string></property></widget></item>
+<item><widget class="QPushButton" name="run_button"><property name="text"><string>Обработать заметку</string></property><property name="minimumHeight"><number>36</number></property></widget></item>
 </layout></widget></item>
-<item><widget class="QLabel" name="statusLabel"><property name="wordWrap"><bool>true</bool></property></widget></item>
-<item><widget class="QTabWidget" name="textTabs">
-<widget class="QWidget" name="resultTab"><attribute name="title"><string>Результат</string></attribute><layout class="QVBoxLayout" name="resultLayout"><item><widget class="QPlainTextEdit" name="resultEditor"/></item></layout></widget>
-<widget class="QWidget" name="sourceTab"><attribute name="title"><string>Исходный текст</string></attribute><layout class="QVBoxLayout" name="sourceLayout"><item><widget class="QPlainTextEdit" name="sourceEditor"><property name="readOnly"><bool>true</bool></property></widget></item></layout></widget>
+<item><widget class="QLabel" name="status_label"><property name="wordWrap"><bool>true</bool></property></widget></item>
+<item><widget class="QTabWidget" name="text_tabs">
+<widget class="QWidget" name="result_tab"><attribute name="title"><string>Результат</string></attribute><layout class="QVBoxLayout" name="result_layout"><item><widget class="QPlainTextEdit" name="result_editor"/></item></layout></widget>
+<widget class="QWidget" name="source_tab"><attribute name="title"><string>Исходный текст</string></attribute><layout class="QVBoxLayout" name="source_layout"><item><widget class="QPlainTextEdit" name="source_editor"><property name="readOnly"><bool>true</bool></property></widget></item></layout></widget>
 </widget></item>
-<item><layout class="QHBoxLayout" name="buttonsLayout">
-<item><widget class="QPushButton" name="cancelButton"><property name="text"><string>Закрыть без изменений</string></property></widget></item>
-<item><widget class="QPushButton" name="applyButton"><property name="text"><string>Применить к заметке</string></property><property name="enabled"><bool>false</bool></property></widget></item>
+<item><layout class="QHBoxLayout" name="buttons_layout">
+<item><widget class="QPushButton" name="cancel_button"><property name="text"><string>Закрыть без изменений</string></property></widget></item>
+<item><widget class="QPushButton" name="apply_button"><property name="text"><string>Применить к заметке</string></property><property name="enabled"><bool>false</bool></property></widget></item>
 </layout></item></layout></widget><resources/><connections/></ui>

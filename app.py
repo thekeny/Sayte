@@ -7,7 +7,7 @@ from PyQt6.QtWidgets import QApplication, QMessageBox
 
 import config
 from ui.main_window import Sayte
-from ui.theme import applyTheme
+from ui.theme import apply_theme
 
 
 if __name__ == "__main__":
@@ -25,7 +25,7 @@ if __name__ == "__main__":
         )
         sys.exit(1)
     try:
-        window.startHotkey()
+        window.start_hotkey()
     except (OSError, ImportError, ValueError) as error:
         QMessageBox.warning(
             window,
@@ -35,7 +35,7 @@ if __name__ == "__main__":
     app.aboutToQuit.connect(
         lambda: window.hotkey.stop() if window.hotkey is not None else None
     )
-    applyTheme(window.settings.getTheme())
+    apply_theme(window.settings.get_theme())
     if "--start-in-tray" not in sys.argv or not window.tray.isVisible():
         window.show()
     sys.exit(app.exec())

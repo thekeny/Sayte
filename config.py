@@ -2,13 +2,13 @@ import os
 import sys
 
 
-def resourcePath(path):
+def resource_path(path):
     if getattr(sys, "frozen", False):
         return os.path.join(sys._MEIPASS, path)
     return path
 
 
-def dataPath(path):
+def data_path(path):
     if getattr(sys, "frozen", False):
         return os.path.join(os.path.dirname(sys.executable), path)
     return path
@@ -21,25 +21,25 @@ NOTE_FONT_SIZE = 12
 NOTE_FONT_MIN = 8
 NOTE_FONT_MAX = 32
 
-DB_PATH = dataPath("data/sayte.sqlite")
-ICON_PATH = resourcePath("images/sayte-icon.png")
+DB_PATH = data_path("data/sayte.sqlite")
+ICON_PATH = resource_path("images/sayte-icon.png")
 
-MAIN_UI_PATH = resourcePath("ui/main_window.ui")
-NOTE_UI_PATH = resourcePath("ui/note_window.ui")
-NOTE_CARD_UI_PATH = resourcePath("ui/note_card.ui")
-TAG_CHIP_UI_PATH = resourcePath("ui/tag_chip.ui")
-RECORDING_UI_PATH = resourcePath("ui/recording_window.ui")
-SETTINGS_UI_PATH = resourcePath("ui/settings_window.ui")
-HOTKEY_UI_PATH = resourcePath("ui/hotkey_dialog.ui")
+MAIN_UI_PATH = resource_path("ui/main_window.ui")
+NOTE_UI_PATH = resource_path("ui/note_window.ui")
+NOTE_CARD_UI_PATH = resource_path("ui/note_card.ui")
+TAG_CHIP_UI_PATH = resource_path("ui/tag_chip.ui")
+RECORDING_UI_PATH = resource_path("ui/recording_window.ui")
+SETTINGS_UI_PATH = resource_path("ui/settings_window.ui")
+HOTKEY_UI_PATH = resource_path("ui/hotkey_dialog.ui")
 
-LOGO_PATH = resourcePath("images/sayte-logo.png")
-SETTINGS_ICON_PATH = resourcePath("images/settings.svg")
-MICROPHONE_ICON_PATH = resourcePath("images/microphone.svg")
-TRASH_ICON_PATH = resourcePath("images/trash.svg")
-CPU_ICON_PATH = resourcePath("images/cpu.svg")
-OPENROUTER_ICON_PATH = resourcePath("images/openrouter.png")
-PROVIDER_UI_PATH = resourcePath("ui/provider_window.ui")
-PREVIEW_UI_PATH = resourcePath("ui/preview_window.ui")
+LOGO_PATH = resource_path("images/sayte-logo.png")
+SETTINGS_ICON_PATH = resource_path("images/settings.svg")
+MICROPHONE_ICON_PATH = resource_path("images/microphone.svg")
+TRASH_ICON_PATH = resource_path("images/trash.svg")
+CPU_ICON_PATH = resource_path("images/cpu.svg")
+OPENROUTER_ICON_PATH = resource_path("images/openrouter.png")
+PROVIDER_UI_PATH = resource_path("ui/provider_window.ui")
+PREVIEW_UI_PATH = resource_path("ui/preview_window.ui")
 OPENROUTER_URL = "https://openrouter.ai/api/v1"
 AI_TIMEOUT = (10, 120)
 AI_HTTP_ERRORS = {
@@ -106,7 +106,7 @@ AI_SYSTEM_PROMPT = (
 )
 SAMPLE_RATE = 16000
 WHISPER_MODEL = "base"
-MODEL_CACHE_PATH = dataPath("data/models")
+MODEL_CACHE_PATH = data_path("data/models")
 
 TITLE_LENGTH = 60
 PREVIEW_LENGTH = 120
@@ -135,9 +135,9 @@ HOTKEY_MODIFIERS = {
     "win": 0x0008,
 }
 
-PRESET_UI_PATH = resourcePath("ui/preset_window.ui")
+PRESET_UI_PATH = resource_path("ui/preset_window.ui")
 
-PIN_ICON_PATH = resourcePath("images/pin.svg")
+PIN_ICON_PATH = resource_path("images/pin.svg")
 AUTOSTART_KEY = r"Software\Microsoft\Windows\CurrentVersion\Run"
 THEME_COLORS = {
     "light": (
@@ -151,7 +151,7 @@ THEME_COLORS = {
     "dark": ("#242424", "#303030", "#eeeeee", "#bcbcbc", "#555555", "#484848"),
 }
 
-PINNED_ICON_PATH = resourcePath("images/pinned.svg")
+PINNED_ICON_PATH = resource_path("images/pinned.svg")
 
 PROCESSING_TEXT = "Обработка…"
 PROMPT_VOICE_MESSAGES = {

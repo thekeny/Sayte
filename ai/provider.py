@@ -48,7 +48,7 @@ class Provider:
             raise ValueError(config.AI_ERRORS["provider"])
         return data
 
-    def getModels(self):
+    def get_models(self):
         data = self.request("GET", "/models")
         rows = data.get("data")
         if not isinstance(rows, list):
@@ -56,17 +56,17 @@ class Provider:
         models = {}
         for row in rows:
             if isinstance(row, dict) and isinstance(row.get("id"), str):
-                modelId = row["id"].strip()
-                if modelId:
+                model_id = row["id"].strip()
+                if model_id:
                     name = row.get("name")
-                    models[modelId] = (
-                        name if isinstance(name, str) else modelId
+                    models[model_id] = (
+                        name if isinstance(name, str) else model_id
                     )
         return [
             {"id": key, "name": value} for key, value in sorted(models.items())
         ]
 
-    def processText(self, model, prompt, text):
+    def process_text(self, model, prompt, text):
         if not model.strip() or not prompt.strip() or not text.strip():
             raise ValueError(config.AI_ERRORS["input"])
         data = self.request(

@@ -12,8 +12,8 @@ class HotkeyFilter(QAbstractNativeEventFilter):
         super().__init__()
         self.hotkey = hotkey
 
-    def nativeEventFilter(self, eventType, message):
-        if eventType in (b"windows_generic_MSG", b"windows_dispatcher_MSG"):
+    def nativeEventFilter(self, event_type, message):
+        if event_type in (b"windows_generic_MSG", b"windows_dispatcher_MSG"):
             msg = MSG.from_address(int(message))
             if (
                 msg.message == config.HOTKEY_MESSAGE

@@ -4,9 +4,9 @@
  <widget class="QDialog" name="HotkeyDialog">
   <property name="geometry"><rect><x>0</x><y>0</y><width>400</width><height>140</height></rect></property>
   <property name="windowTitle"><string>Назначить сочетание</string></property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="vertical_layout">
    <item><widget class="QLabel" name="hint"/></item>
-   <item><widget class="QPushButton" name="cancelButton"><property name="text"><string>Отмена</string></property><property name="autoDefault"><bool>false</bool></property></widget></item>
+   <item><widget class="QPushButton" name="cancel_button"><property name="text"><string>Отмена</string></property><property name="autoDefault"><bool>false</bool></property></widget></item>
   </layout>
  </widget>
  <resources/>

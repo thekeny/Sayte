@@ -2,7 +2,7 @@ class Presets:
     def __init__(self, database):
         self.connection = database.connection
 
-    def getPresets(self):
+    def get_presets(self):
         return [
             dict(row)
             for row in self.connection.execute(
@@ -10,12 +10,12 @@ class Presets:
             )
         ]
 
-    def savePreset(self, presetId, name, prompt):
+    def save_preset(self, preset_id, name, prompt):
         name, prompt = name.strip(), prompt.strip()
         if not name or not prompt:
             raise ValueError("Укажите название режима и промпт.")
         with self.connection:
-            if presetId is None:
+            if preset_id is None:
                 cursor = self.connection.execute(
                     "INSERT INTO ai_presets (name, prompt) VALUES (?, ?)",
                     (name, prompt),
@@ -23,12 +23,12 @@ class Presets:
                 return cursor.lastrowid
             self.connection.execute(
                 "UPDATE ai_presets SET name = ?, prompt = ? WHERE id = ?",
-                (name, prompt, presetId),
+                (name, prompt, preset_id),
             )
-        return presetId
+        return preset_id
 
-    def deletePreset(self, presetId):
+    def delete_preset(self, preset_id):
         with self.connection:
             self.connection.execute(
-                "DELETE FROM ai_presets WHERE id = ?", (presetId,)
+                "DELETE FROM ai_presets WHERE id = ?", (preset_id,)
             )

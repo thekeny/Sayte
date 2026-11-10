@@ -4,7 +4,7 @@ from PyQt6.QtWidgets import QApplication
 import config
 
 
-def applyTheme(theme):
+def apply_theme(theme):
     app = QApplication.instance()
     app.setStyle("Fusion")
     background, surface, text, muted, border, selected = config.THEME_COLORS[
@@ -46,8 +46,8 @@ def applyTheme(theme):
             border-radius: 8px;
         }}
         QListWidget::item:selected {{ background: {selected}; }}
-        QLabel#titleLabel, QLabel#heading {{ font-weight: bold; }}
-        QLabel#previewLabel, QLabel#tagsLabel {{ color: {muted}; }}
+        QLabel#title_label, QLabel#heading {{ font-weight: bold; }}
+        QLabel#preview_label, QLabel#tags_label {{ color: {muted}; }}
         QMenu {{ background: {surface}; }}
         QMenu::item:selected {{ background: {selected}; }}
     """)

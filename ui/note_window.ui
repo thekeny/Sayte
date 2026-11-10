@@ -13,11 +13,11 @@
   <property name="windowTitle">
    <string>Заметка</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1">
+  <layout class="QVBoxLayout" name="vertical_layout" stretch="0,1">
    <item>
-    <layout class="QHBoxLayout" name="pinLayout">
-     <item><spacer name="pinSpacer"><property name="orientation"><enum>Qt::Orientation::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>40</width><height>20</height></size></property></spacer></item>
-     <item><widget class="QPushButton" name="pinButton">
+    <layout class="QHBoxLayout" name="pin_layout">
+     <item><spacer name="pin_spacer"><property name="orientation"><enum>Qt::Orientation::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>40</width><height>20</height></size></property></spacer></item>
+     <item><widget class="QPushButton" name="pin_button">
       <property name="checkable"><bool>true</bool></property>
       <property name="autoDefault"><bool>false</bool></property>
       <property name="text"><string>Закрепить</string></property>
@@ -25,7 +25,7 @@
     </layout>
    </item>
    <item>
-    <widget class="QSplitter" name="editorSplitter">
+    <widget class="QSplitter" name="editor_splitter">
      <property name="orientation"><enum>Qt::Vertical</enum></property>
      <property name="handleWidth"><number>8</number></property>
      <property name="childrenCollapsible"><bool>false</bool></property>
@@ -41,33 +41,33 @@
       <bool>false</bool>
      </property>
     </widget>
-    <widget class="QWidget" name="noteControls">
-     <layout class="QVBoxLayout" name="controlsLayout">
+    <widget class="QWidget" name="note_controls">
+     <layout class="QVBoxLayout" name="controls_layout">
       <property name="leftMargin"><number>0</number></property>
       <property name="topMargin"><number>0</number></property>
       <property name="rightMargin"><number>0</number></property>
       <property name="bottomMargin"><number>0</number></property>
    <item>
-    <widget class="QLineEdit" name="tagInput">
+    <widget class="QLineEdit" name="tag_input">
      <property name="placeholderText">
       <string>Тег</string>
      </property>
     </widget>
    </item>
    <item>
-    <layout class="QGridLayout" name="tagsLayout" />
+    <layout class="QGridLayout" name="tags_layout" />
    </item>
    <item>
-    <widget class="QLabel" name="voiceStatus">
+    <widget class="QLabel" name="voice_status">
      <property name="wordWrap">
       <bool>true</bool>
      </property>
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="buttonsLayout">
+    <layout class="QHBoxLayout" name="buttons_layout">
      <item>
-      <widget class="QPushButton" name="aiButton">
+      <widget class="QPushButton" name="ai_button">
        <property name="minimumSize"><size><width>36</width><height>36</height></size></property>
        <property name="maximumSize"><size><width>36</width><height>36</height></size></property>
        <property name="iconSize"><size><width>22</width><height>22</height></size></property>
@@ -77,7 +77,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="voiceButton">
+      <widget class="QPushButton" name="voice_button">
        <property name="minimumSize">
         <size>
          <width>36</width>
@@ -111,7 +111,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="deleteButton">
+      <widget class="QPushButton" name="delete_button">
        <property name="minimumSize">
         <size>
          <width>36</width>
@@ -142,7 +142,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="exportButton">
+      <widget class="QPushButton" name="export_button">
        <property name="text">
         <string>Экспорт в TXT</string>
        </property>
@@ -152,7 +152,7 @@
       </widget>
      </item>
      <item>
-      <spacer name="buttonsSpacer">
+      <spacer name="buttons_spacer">
        <property name="orientation">
         <enum>Qt::Orientation::Horizontal</enum>
        </property>
@@ -165,7 +165,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="saveButton">
+      <widget class="QPushButton" name="save_button">
        <property name="text">
         <string>Сохранить</string>
        </property>
@@ -175,7 +175,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="cancelButton">
+      <widget class="QPushButton" name="cancel_button">
        <property name="text">
         <string>Отмена</string>
        </property>
@@ -186,7 +186,7 @@
      </item>
     </layout>
    </item>
-   <item><spacer name="controlsSpacer"><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
+   <item><spacer name="controls_spacer"><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
      </layout>
     </widget>
     </widget>

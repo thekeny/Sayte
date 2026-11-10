@@ -4,63 +4,63 @@ from PyQt6 import uic
 from PyQt6.QtWidgets import QDialog, QMessageBox, QPushButton
 
 import config
-from ai.presets import getBuiltinPresets
+from ai.presets import get_builtin_presets
 
 
 class PresetWindow(QDialog):
     def __init__(self, presets, parent=None):
         super().__init__(parent)
         self.presets = presets
-        self.initUI()
+        self.init_ui()
 
-    def initUI(self):
+    def init_ui(self):
         uic.loadUi(config.PRESET_UI_PATH, self)
         for button in self.findChildren(QPushButton):
             button.setAutoDefault(False)
-        self.presetCombo.currentIndexChanged.connect(self.changePreset)
-        self.savePresetButton.clicked.connect(self.savePreset)
-        self.deletePresetButton.clicked.connect(self.deletePreset)
-        self.closeButton.clicked.connect(self.accept)
-        self.loadPresets()
+        self.preset_combo.currentIndexChanged.connect(self.change_preset)
+        self.save_preset_button.clicked.connect(self.save_preset)
+        self.delete_preset_button.clicked.connect(self.delete_preset)
+        self.close_button.clicked.connect(self.accept)
+        self.load_presets()
 
-    def loadPresets(self, selected=None):
-        rows = self.presets.getPresets()
-        self.presetCombo.blockSignals(True)
-        self.presetCombo.clear()
-        self.presetCombo.addItem("Новое действие", None)
-        for preset in getBuiltinPresets():
-            self.presetCombo.addItem(preset["name"], preset)
-        selectedIndex = 0
+    def load_presets(self, selected=None):
+        rows = self.presets.get_presets()
+        self.preset_combo.blockSignals(True)
+        self.preset_combo.clear()
+        self.preset_combo.addItem("Новое действие", None)
+        for preset in get_builtin_presets():
+            self.preset_combo.addItem(preset["name"], preset)
+        selected_index = 0
         for row in rows:
-            self.presetCombo.addItem(row["name"], row)
+            self.preset_combo.addItem(row["name"], row)
             if row["id"] == selected:
-                selectedIndex = self.presetCombo.count() - 1
-        self.presetCombo.setCurrentIndex(selectedIndex)
-        self.presetCombo.blockSignals(False)
-        self.changePreset()
+                selected_index = self.preset_combo.count() - 1
+        self.preset_combo.setCurrentIndex(selected_index)
+        self.preset_combo.blockSignals(False)
+        self.change_preset()
 
-    def changePreset(self):
-        preset = self.presetCombo.currentData()
-        self.promptInput.setPlainText(preset["prompt"] if preset else "")
+    def change_preset(self):
+        preset = self.preset_combo.currentData()
+        self.prompt_input.setPlainText(preset["prompt"] if preset else "")
         custom = preset is not None and preset["id"] is not None
-        self.presetName.setText(preset["name"] if custom else "")
-        self.deletePresetButton.setEnabled(custom)
+        self.preset_name.setText(preset["name"] if custom else "")
+        self.delete_preset_button.setEnabled(custom)
 
-    def savePreset(self):
-        preset = self.presetCombo.currentData()
-        presetId = preset["id"] if preset else None
+    def save_preset(self):
+        preset = self.preset_combo.currentData()
+        preset_id = preset["id"] if preset else None
         try:
-            presetId = self.presets.savePreset(
-                presetId,
-                self.presetName.text(),
-                self.promptInput.toPlainText(),
+            preset_id = self.presets.save_preset(
+                preset_id,
+                self.preset_name.text(),
+                self.prompt_input.toPlainText(),
             )
-            self.loadPresets(presetId)
+            self.load_presets(preset_id)
         except (sqlite3.Error, ValueError) as error:
-            self.statusLabel.setText(f"Не удалось сохранить режим: {error}")
+            self.status_label.setText(f"Не удалось сохранить режим: {error}")
 
-    def deletePreset(self):
-        preset = self.presetCombo.currentData()
+    def delete_preset(self):
+        preset = self.preset_combo.currentData()
         if not preset or preset["id"] is None:
             return
         answer = QMessageBox.question(
@@ -73,7 +73,7 @@ class PresetWindow(QDialog):
         if answer != QMessageBox.StandardButton.Yes:
             return
         try:
-            self.presets.deletePreset(preset["id"])
-            self.loadPresets()
+            self.presets.delete_preset(preset["id"])
+            self.load_presets()
         except sqlite3.Error:
-            self.statusLabel.setText("Не удалось удалить режим из базы.")
+            self.status_label.setText("Не удалось удалить режим из базы.")

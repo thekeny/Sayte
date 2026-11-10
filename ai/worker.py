@@ -19,9 +19,9 @@ class AiWorker(QThread):
         try:
             provider = Provider(self.profile)
             if self.operation == "models":
-                result = provider.getModels()
+                result = provider.get_models()
             else:
-                result = provider.processText(
+                result = provider.process_text(
                     self.profile["model"], self.prompt, self.text
                 )
         except ValueError as error:

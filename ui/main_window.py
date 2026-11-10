@@ -33,77 +33,79 @@ class Sayte(QWidget):
         self.settings = Settings(self.database)
         self.providers = Providers(self.database)
         self.presets = Presets(self.database)
-        self.shortcut = self.settings.getHotkey()
+        self.shortcut = self.settings.get_hotkey()
         self.recorder = Recorder()
         self.whisper = Whisper()
         self.session = RecordingSession(self.recorder, self.whisper, self)
         self.worker = None
         self.hotkey = None
-        self.activeEditor = None
+        self.active_editor = None
         self.state = "idle"
-        self.pendingText = ""
-        self.exitAfterSave = False
-        self.initUI()
-        self.loadNotes()
+        self.pending_text = ""
+        self.exit_after_save = False
+        self.init_ui()
+        self.load_notes()
 
-    def initUI(self):
+    def init_ui(self):
         uic.loadUi(config.MAIN_UI_PATH, self)
         self.setWindowIcon(QIcon(config.ICON_PATH))
-        self.settingsButton.setIcon(QIcon(config.SETTINGS_ICON_PATH))
-        self.logoLabel.setPixmap(QPixmap(config.LOGO_PATH))
-        self.recordButton.clicked.connect(self.toggleRecording)
-        self.recordButton.installEventFilter(self)
-        self.settingsButton.clicked.connect(self.openSettings)
-        self.updateHotkeyHint()
-        self.notesList.itemClicked.connect(self.showNote)
-        self.searchInput.textChanged.connect(self.searchNotes)
-        self.tagFilter.currentIndexChanged.connect(self.searchNotes)
-        self.recordingWindow = RecordingWindow(self.recorder)
-        self.recordingWindow.stopRequested.connect(self.toggleRecording)
+        self.settings_button.setIcon(QIcon(config.SETTINGS_ICON_PATH))
+        self.logo_label.setPixmap(QPixmap(config.LOGO_PATH))
+        self.record_button.clicked.connect(self.toggle_recording)
+        self.record_button.installEventFilter(self)
+        self.settings_button.clicked.connect(self.open_settings)
+        self.update_hotkey_hint()
+        self.notes_list.itemClicked.connect(self.show_note)
+        self.search_input.textChanged.connect(self.search_notes)
+        self.tag_filter.currentIndexChanged.connect(self.search_notes)
+        self.recording_window = RecordingWindow(self.recorder)
+        self.recording_window.stop_requested.connect(self.toggle_recording)
         self.tray = Tray(self)
         if QSystemTrayIcon.isSystemTrayAvailable():
             self.tray.show()
         else:
-            self.statusLabel.setText("Системный трей недоступен")
+            self.status_label.setText("Системный трей недоступен")
 
     def eventFilter(self, watched, event):
         if (
-            watched is self.recordButton
+            watched is self.record_button
             and event.type() in (QEvent.Type.KeyPress, QEvent.Type.KeyRelease)
             and event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter)
         ):
             return True
         return super().eventFilter(watched, event)
 
-    def loadNotes(self, selectedId=None):
-        selectedTag = self.tagFilter.currentData()
-        self.tagFilter.blockSignals(True)
-        self.tagFilter.clear()
-        self.tagFilter.addItem("Все теги", None)
-        for tag in self.tags.getTags():
-            self.tagFilter.addItem(tag["name"], tag["id"])
-        index = self.tagFilter.findData(selectedTag)
-        self.tagFilter.setCurrentIndex(max(index, 0))
-        self.tagFilter.blockSignals(False)
-        selectedTag = self.tagFilter.currentData()
-        rows = self.notes.getNotes()
-        query = self.searchInput.text().strip().casefold()
+    def load_notes(self, selected_id=None):
+        selected_tag = self.tag_filter.currentData()
+        self.tag_filter.blockSignals(True)
+        self.tag_filter.clear()
+        self.tag_filter.addItem("Все теги", None)
+        for tag in self.tags.get_tags():
+            self.tag_filter.addItem(tag["name"], tag["id"])
+        index = self.tag_filter.findData(selected_tag)
+        self.tag_filter.setCurrentIndex(max(index, 0))
+        self.tag_filter.blockSignals(False)
+        selected_tag = self.tag_filter.currentData()
+        rows = self.notes.get_notes()
+        query = self.search_input.text().strip().casefold()
         rows = [
             row
             for row in rows
             if query in row["title"].casefold()
             or query in row["current_text"].casefold()
         ]
-        noteTags = {
-            row["id"]: self.tags.getNoteTags(row["id"]) for row in rows
+        note_tags = {
+            row["id"]: self.tags.get_note_tags(row["id"]) for row in rows
         }
-        if selectedTag is not None:
+        if selected_tag is not None:
             rows = [
                 row
                 for row in rows
-                if any(tag["id"] == selectedTag for tag in noteTags[row["id"]])
+                if any(
+                    tag["id"] == selected_tag for tag in note_tags[row["id"]]
+                )
             ]
-        self.notesList.clear()
+        self.notes_list.clear()
         selected = None
         for row in rows:
             title = row["title"]
@@ -114,87 +116,87 @@ class Sayte(QWidget):
             item.setData(Qt.ItemDataRole.UserRole, row["id"])
             height = (
                 config.TAGGED_NOTE_HEIGHT
-                if noteTags[row["id"]]
+                if note_tags[row["id"]]
                 else config.NOTE_HEIGHT
             )
             item.setSizeHint(QSize(0, height))
-            self.notesList.addItem(item)
+            self.notes_list.addItem(item)
             card = uic.loadUi(config.NOTE_CARD_UI_PATH)
-            card.titleLabel.setText(title)
-            card.previewLabel.setText(preview)
-            card.tagsLabel.setText(
-                ", ".join(tag["name"] for tag in noteTags[row["id"]])
+            card.title_label.setText(title)
+            card.preview_label.setText(preview)
+            card.tags_label.setText(
+                ", ".join(tag["name"] for tag in note_tags[row["id"]])
             )
-            card.tagsLabel.setVisible(bool(noteTags[row["id"]]))
-            card.pinLabel.setPixmap(
+            card.tags_label.setVisible(bool(note_tags[row["id"]]))
+            card.pin_label.setPixmap(
                 QIcon(config.PINNED_ICON_PATH).pixmap(20, 20)
             )
-            card.pinLabel.setVisible(bool(row["is_pinned"]))
+            card.pin_label.setVisible(bool(row["is_pinned"]))
             card.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
-            self.notesList.setItemWidget(item, card)
-            if row["id"] == selectedId:
+            self.notes_list.setItemWidget(item, card)
+            if row["id"] == selected_id:
                 selected = item
         if selected is not None:
-            self.notesList.setCurrentItem(selected)
+            self.notes_list.setCurrentItem(selected)
         elif rows:
-            self.notesList.setCurrentRow(0)
-        self.emptyLabel.setText(
+            self.notes_list.setCurrentRow(0)
+        self.empty_label.setText(
             "Ничего не найдено."
-            if query or selectedTag is not None
+            if query or selected_tag is not None
             else "Заметок пока нет. Начните запись."
         )
-        self.emptyLabel.setVisible(not rows)
+        self.empty_label.setVisible(not rows)
 
-    def searchNotes(self):
+    def search_notes(self):
         try:
-            self.loadNotes()
+            self.load_notes()
         except sqlite3.Error as error:
-            self.showError(f"Не удалось выполнить поиск: {error}")
+            self.show_error(f"Не удалось выполнить поиск: {error}")
 
-    def showNote(self, current):
+    def show_note(self, current):
         try:
-            note = self.notes.getNote(current.data(Qt.ItemDataRole.UserRole))
+            note = self.notes.get_note(current.data(Qt.ItemDataRole.UserRole))
         except sqlite3.Error as error:
-            self.showError(f"Не удалось открыть заметку: {error}")
+            self.show_error(f"Не удалось открыть заметку: {error}")
             return
         if note is not None:
             try:
                 dialog = NoteWindow(self.notes, note, self)
             except sqlite3.Error as error:
-                self.showError(f"Не удалось загрузить теги: {error}")
+                self.show_error(f"Не удалось загрузить теги: {error}")
                 return
-            self.activeEditor = dialog
+            self.active_editor = dialog
             try:
                 result = dialog.exec()
             finally:
-                self.activeEditor = None
+                self.active_editor = None
             if result == QDialog.DialogCode.Accepted:
                 try:
-                    self.loadNotes(note["id"])
+                    self.load_notes(note["id"])
                 except sqlite3.Error as error:
-                    self.showError(f"Не удалось обновить список: {error}")
+                    self.show_error(f"Не удалось обновить список: {error}")
 
-    def openSettings(self):
+    def open_settings(self):
         try:
             SettingsWindow(self).exec()
         except (OSError, sqlite3.Error) as error:
-            self.showError(f"Не удалось открыть настройки: {error}")
+            self.show_error(f"Не удалось открыть настройки: {error}")
 
-    def updateHotkeyHint(self):
-        self.statusLabel.setText(
+    def update_hotkey_hint(self):
+        self.status_label.setText(
             f"{self.shortcut.upper()} — начать или остановить запись"
         )
 
-    def startHotkey(self):
+    def start_hotkey(self):
         from utils.hotkey import Hotkey
 
         self.hotkey = Hotkey(self.shortcut)
         self.hotkey.activated.connect(
-            self.toggleRecording, Qt.ConnectionType.QueuedConnection
+            self.toggle_recording, Qt.ConnectionType.QueuedConnection
         )
         self.hotkey.start()
 
-    def applySettings(self, shortcut):
+    def apply_settings(self, shortcut):
         parts = shortcut.split("+")
         modifiers = parts[:-1]
         if (
@@ -215,145 +217,145 @@ class Sayte(QWidget):
             self.hotkey.stop()
         self.shortcut = shortcut
         try:
-            self.startHotkey()
-            self.settings.saveHotkey(shortcut)
+            self.start_hotkey()
+            self.settings.save_hotkey(shortcut)
         except (OSError, ImportError, ValueError, sqlite3.Error):
             if self.hotkey is not None:
                 self.hotkey.stop()
             self.shortcut = previous
             try:
-                self.startHotkey()
+                self.start_hotkey()
             except (OSError, ImportError, ValueError) as error:
-                self.showError(
+                self.show_error(
                     f"Не удалось восстановить горячую клавишу: {error}"
                 )
             raise
         if self.state == "idle":
-            self.updateHotkeyHint()
+            self.update_hotkey_hint()
         elif self.state == "recording":
-            self.setState(
+            self.set_state(
                 "recording", f"Запись… {self.shortcut.upper()} — остановить"
             )
 
-    def setState(self, state, text):
+    def set_state(self, state, text):
         self.state = state
-        self.statusLabel.setText(text)
-        self.recordButton.setText(config.RECORD_BUTTON_TITLES[state])
-        self.recordButton.setEnabled(state != "processing")
-        self.tray.setState(state, text)
-        self.recordingWindow.setState(state, text)
+        self.status_label.setText(text)
+        self.record_button.setText(config.RECORD_BUTTON_TITLES[state])
+        self.record_button.setEnabled(state != "processing")
+        self.tray.set_state(state, text)
+        self.recording_window.set_state(state, text)
 
-    def toggleRecording(self):
+    def toggle_recording(self):
         if (
-            self.activeEditor is not None
+            self.active_editor is not None
             and self.state == "idle"
             and self.worker is None
         ):
-            self.activeEditor.toggleRecording()
+            self.active_editor.toggle_recording()
             return
-        if self.worker is not None or self.exitAfterSave:
+        if self.worker is not None or self.exit_after_save:
             return
-        if self.pendingText:
-            self.saveNote()
+        if self.pending_text:
+            self.save_note()
             return
 
         if self.state == "recording":
-            self.stopRecording()
+            self.stop_recording()
             return
         try:
-            self.session.startRecording(self)
+            self.session.start_recording(self)
         except (OSError, RuntimeError, ValueError, PortAudioError) as error:
-            self.showError(f"Не удалось включить микрофон: {error}")
+            self.show_error(f"Не удалось включить микрофон: {error}")
             return
-        self.setState(
+        self.set_state(
             "recording", f"Запись… {self.shortcut.upper()} — остановить"
         )
 
-    def stopRecording(self):
+    def stop_recording(self):
         try:
-            audio = self.session.stopRecording(self)
+            audio = self.session.stop_recording(self)
         except (OSError, RuntimeError, ValueError, PortAudioError) as error:
-            self.exitAfterSave = False
-            self.setState("idle", "Запись не удалась")
-            self.showError(str(error))
+            self.exit_after_save = False
+            self.set_state("idle", "Запись не удалась")
+            self.show_error(str(error))
             return
         if audio.size == 0:
-            self.exitAfterSave = False
-            self.setState("idle", "Запись пустая. Попробуйте ещё раз.")
+            self.exit_after_save = False
+            self.set_state("idle", "Запись пустая. Попробуйте ещё раз.")
             return
 
-        self.setState("processing", config.PROCESSING_TEXT)
+        self.set_state("processing", config.PROCESSING_TEXT)
         self.worker = self.session.transcribe(
             self,
             audio,
-            self.processText,
-            self.transcriptionError,
-            self.finishProcessing,
-            self.processingStatus,
+            self.process_text,
+            self.transcription_error,
+            self.finish_processing,
+            self.processing_status,
         )
 
-    def processingStatus(self, text):
-        self.setState("processing", text)
+    def processing_status(self, text):
+        self.set_state("processing", text)
 
-    def processText(self, text):
+    def process_text(self, text):
         if not text.strip():
-            self.exitAfterSave = False
-            self.setState("idle", "Речь не найдена. Попробуйте ещё раз.")
+            self.exit_after_save = False
+            self.set_state("idle", "Речь не найдена. Попробуйте ещё раз.")
             return
-        self.pendingText = text.strip()
-        self.saveNote()
+        self.pending_text = text.strip()
+        self.save_note()
 
-    def saveNote(self):
+    def save_note(self):
         try:
-            noteId = self.notes.addNote(self.pendingText)
+            note_id = self.notes.add_note(self.pending_text)
         except sqlite3.Error as error:
-            self.exitAfterSave = False
-            self.setState("saving", "Не удалось сохранить заметку")
-            self.showError(
+            self.exit_after_save = False
+            self.set_state("saving", "Не удалось сохранить заметку")
+            self.show_error(
                 f"{error}\nТекст остаётся в памяти. "
                 "Нажмите «Повторить сохранение»."
             )
             return
 
-        self.pendingText = ""
-        self.setState("idle", "Запись сохранена")
-        self.recordingWindow.hideTimer.start(config.SAVE_MESSAGE_MS)
+        self.pending_text = ""
+        self.set_state("idle", "Запись сохранена")
+        self.recording_window.hide_timer.start(config.SAVE_MESSAGE_MS)
         try:
-            self.loadNotes(noteId)
+            self.load_notes(note_id)
         except sqlite3.Error as error:
-            self.showError(f"Не удалось обновить список: {error}")
+            self.show_error(f"Не удалось обновить список: {error}")
 
-    def transcriptionError(self, message):
-        self.exitAfterSave = False
-        self.setState("idle", "Распознавание не удалось")
-        self.showError(f"Не удалось распознать речь: {message}")
+    def transcription_error(self, message):
+        self.exit_after_save = False
+        self.set_state("idle", "Распознавание не удалось")
+        self.show_error(f"Не удалось распознать речь: {message}")
 
-    def finishProcessing(self):
+    def finish_processing(self):
         self.worker = None
-        if self.exitAfterSave:
-            QTimer.singleShot(0, self.requestExit)
+        if self.exit_after_save:
+            QTimer.singleShot(0, self.request_exit)
 
-    def showError(self, message):
-        self.showWindow()
+    def show_error(self, message):
+        self.show_window()
         QMessageBox.warning(self, "Sayte", message)
 
-    def showWindow(self):
+    def show_window(self):
         self.showNormal()
         self.raise_()
         self.activateWindow()
 
-    def requestExit(self):
+    def request_exit(self):
         if self.findChildren(AiWorker):
             QMessageBox.warning(
                 self, "Выход из Sayte", "Дождитесь завершения запроса к ИИ."
             )
             return
-        if self.activeEditor is not None:
-            self.activeEditor.close()
-            if self.activeEditor.isVisible():
+        if self.active_editor is not None:
+            self.active_editor.close()
+            if self.active_editor.isVisible():
                 return
         if self.worker is not None or self.state == "recording":
-            if self.exitAfterSave:
+            if self.exit_after_save:
                 return
             answer = QMessageBox.question(
                 self,
@@ -365,15 +367,15 @@ class Sayte(QWidget):
             )
             if answer != QMessageBox.StandardButton.Yes:
                 return
-            self.exitAfterSave = True
+            self.exit_after_save = True
             if self.state == "recording":
-                self.stopRecording()
+                self.stop_recording()
             elif self.worker is None:
-                self.requestExit()
+                self.request_exit()
             return
-        if self.pendingText:
-            self.saveNote()
-            if self.pendingText:
+        if self.pending_text:
+            self.save_note()
+            if self.pending_text:
                 return
 
         if self.hotkey is not None:
@@ -381,7 +383,7 @@ class Sayte(QWidget):
         self.recorder.close()
         self.database.close()
         self.tray.hide()
-        self.recordingWindow.hide()
+        self.recording_window.hide()
         QApplication.instance().quit()
 
     def closeEvent(self, event):
@@ -389,4 +391,4 @@ class Sayte(QWidget):
         if self.tray.isVisible():
             self.hide()
         else:
-            self.requestExit()
+            self.request_exit()

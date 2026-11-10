@@ -7,7 +7,7 @@ class Notes:
     def __init__(self, database):
         self.connection = database.connection
 
-    def addNote(self, text):
+    def add_note(self, text):
         text = text.strip()
         if not text:
             raise ValueError("Нельзя сохранить пустую заметку")
@@ -23,31 +23,33 @@ class Notes:
             )
         return cursor.lastrowid
 
-    def getNotes(self):
+    def get_notes(self):
         return self.connection.execute(
             """SELECT id, title, current_text, created_at, is_pinned FROM notes
             ORDER BY is_pinned DESC, created_at DESC, id DESC"""
         ).fetchall()
 
-    def setPinned(self, noteId, pinned):
+    def set_pinned(self, note_id, pinned):
         with self.connection:
             self.connection.execute(
                 "UPDATE notes SET is_pinned = ? WHERE id = ?",
-                (int(pinned), noteId),
+                (int(pinned), note_id),
             )
 
-    def getNote(self, noteId):
+    def get_note(self, note_id):
         return self.connection.execute(
-            "SELECT * FROM notes WHERE id = ?", (noteId,)
+            "SELECT * FROM notes WHERE id = ?", (note_id,)
         ).fetchone()
 
-    def deleteNote(self, noteId):
+    def delete_note(self, note_id):
         with self.connection:
             self.connection.execute(
-                "DELETE FROM notes WHERE id = ?", (noteId,)
+                "DELETE FROM notes WHERE id = ?", (note_id,)
             )
 
-    def updateNote(self, noteId, text, tags=None, tagNames=None, pinned=None):
+    def update_note(
+        self, note_id, text, tags=None, tag_names=None, pinned=None
+    ):
         text = text.strip()
         if not text:
             raise ValueError("Нельзя сохранить пустую заметку")
@@ -60,13 +62,13 @@ class Notes:
                     text.splitlines()[0][: config.TITLE_LENGTH],
                     text,
                     date,
-                    noteId,
+                    note_id,
                 ),
             )
             if pinned is not None:
                 self.connection.execute(
                     "UPDATE notes SET is_pinned = ? WHERE id = ?",
-                    (int(pinned), noteId),
+                    (int(pinned), note_id),
                 )
             if tags is not None:
-                tags.setNoteTags(noteId, tagNames)
+                tags.set_note_tags(note_id, tag_names)

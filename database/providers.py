@@ -5,7 +5,7 @@ class Providers:
     def __init__(self, database):
         self.connection = database.connection
 
-    def getProfiles(self):
+    def get_profiles(self):
         return [
             dict(row)
             for row in self.connection.execute(
@@ -13,13 +13,13 @@ class Providers:
             )
         ]
 
-    def getActiveProfile(self):
+    def get_active_profile(self):
         row = self.connection.execute(
             "SELECT value FROM settings WHERE name = ?", ("ai_active_profile",)
         ).fetchone()
         return row["value"] if row else ""
 
-    def validateProfile(self, profile):
+    def validate_profile(self, profile):
         if not profile["name"].strip():
             raise ValueError("Укажите название подключения.")
         url = urlsplit(profile["url"])
@@ -37,12 +37,12 @@ class Providers:
         except ValueError:
             raise ValueError("Некорректный порт в URL API.") from None
 
-    def saveProfiles(self, profiles, activeId):
+    def save_profiles(self, profiles, active_id):
         for profile in profiles:
-            self.validateProfile(profile)
+            self.validate_profile(profile)
         ids = [profile["id"] for profile in profiles]
-        if activeId not in ids:
-            activeId = ids[0] if ids else ""
+        if active_id not in ids:
+            active_id = ids[0] if ids else ""
         with self.connection:
             self.connection.execute("DELETE FROM ai_profiles")
             self.connection.executemany(
@@ -61,16 +61,16 @@ class Providers:
             )
             self.connection.execute(
                 "INSERT OR REPLACE INTO settings (name, value) VALUES (?, ?)",
-                ("ai_active_profile", activeId),
+                ("ai_active_profile", active_id),
             )
 
-    def selectProfile(self, profileId, model):
+    def select_profile(self, profile_id, model):
         with self.connection:
             self.connection.execute(
                 "UPDATE ai_profiles SET model = ? WHERE id = ?",
-                (model, profileId),
+                (model, profile_id),
             )
             self.connection.execute(
                 "INSERT OR REPLACE INTO settings (name, value) VALUES (?, ?)",
-                ("ai_active_profile", profileId),
+                ("ai_active_profile", profile_id),
             )

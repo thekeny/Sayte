@@ -10,7 +10,7 @@ class VoiceWave(QWidget):
         super().__init__(parent)
         self.levels = [0.0] * config.WAVE_LEVEL_COUNT
 
-    def addLevel(self, level):
+    def add_level(self, level):
         self.levels = self.levels[1:] + [min(level * config.WAVE_SCALE, 1.0)]
         self.update()
 

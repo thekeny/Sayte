@@ -3,27 +3,27 @@
  <widget class="QDialog" name="ProviderWindow">
   <property name="windowTitle"><string>Подключения ИИ</string></property>
   <property name="geometry"><rect><x>0</x><y>0</y><width>620</width><height>540</height></rect></property>
-  <layout class="QVBoxLayout" name="verticalLayout">
-   <item><widget class="QComboBox" name="profileCombo"><property name="accessibleName"><string>Подключение ИИ</string></property></widget></item>
-   <item><layout class="QHBoxLayout" name="profileButtons">
-    <item><widget class="QPushButton" name="addButton"><property name="text"><string>Добавить</string></property></widget></item>
-    <item><widget class="QPushButton" name="deleteButton"><property name="text"><string>Удалить подключение</string></property></widget></item>
+  <layout class="QVBoxLayout" name="vertical_layout">
+   <item><widget class="QComboBox" name="profile_combo"><property name="accessibleName"><string>Подключение ИИ</string></property></widget></item>
+   <item><layout class="QHBoxLayout" name="profile_buttons">
+    <item><widget class="QPushButton" name="add_button"><property name="text"><string>Добавить</string></property></widget></item>
+    <item><widget class="QPushButton" name="delete_button"><property name="text"><string>Удалить подключение</string></property></widget></item>
    </layout></item>
-   <item><widget class="QWidget" name="fields"><layout class="QFormLayout" name="formLayout">
-    <item row="0" column="0"><widget class="QLabel" name="nameLabel"><property name="text"><string>Название</string></property></widget></item>
-    <item row="0" column="1"><widget class="QLineEdit" name="nameInput" /></item>
-    <item row="1" column="0"><widget class="QLabel" name="urlLabel"><property name="text"><string>Базовый URL API</string></property></widget></item>
-    <item row="1" column="1"><widget class="QLineEdit" name="urlInput"><property name="placeholderText"><string>http://localhost:11434/v1</string></property></widget></item>
-    <item row="2" column="0"><widget class="QLabel" name="keyLabel"><property name="text"><string>API-ключ</string></property></widget></item>
-    <item row="2" column="1"><widget class="QLineEdit" name="keyInput"><property name="echoMode"><enum>QLineEdit::Password</enum></property></widget></item>
-    <item row="3" column="0"><widget class="QLabel" name="modelLabel"><property name="text"><string>Модель</string></property></widget></item>
-    <item row="3" column="1"><widget class="QComboBox" name="modelCombo"><property name="editable"><bool>true</bool></property><property name="insertPolicy"><enum>QComboBox::NoInsert</enum></property></widget></item>
-    <item row="4" column="1"><widget class="QPushButton" name="refreshButton"><property name="text"><string>Обновить список моделей</string></property></widget></item>
+   <item><widget class="QWidget" name="fields"><layout class="QFormLayout" name="form_layout">
+    <item row="0" column="0"><widget class="QLabel" name="name_label"><property name="text"><string>Название</string></property></widget></item>
+    <item row="0" column="1"><widget class="QLineEdit" name="name_input" /></item>
+    <item row="1" column="0"><widget class="QLabel" name="url_label"><property name="text"><string>Базовый URL API</string></property></widget></item>
+    <item row="1" column="1"><widget class="QLineEdit" name="url_input"><property name="placeholderText"><string>http://localhost:11434/v1</string></property></widget></item>
+    <item row="2" column="0"><widget class="QLabel" name="key_label"><property name="text"><string>API-ключ</string></property></widget></item>
+    <item row="2" column="1"><widget class="QLineEdit" name="key_input"><property name="echoMode"><enum>QLineEdit::Password</enum></property></widget></item>
+    <item row="3" column="0"><widget class="QLabel" name="model_label"><property name="text"><string>Модель</string></property></widget></item>
+    <item row="3" column="1"><widget class="QComboBox" name="model_combo"><property name="editable"><bool>true</bool></property><property name="insertPolicy"><enum>QComboBox::NoInsert</enum></property></widget></item>
+    <item row="4" column="1"><widget class="QPushButton" name="refresh_button"><property name="text"><string>Обновить список моделей</string></property></widget></item>
    </layout></widget></item>
-   <item><widget class="QLabel" name="statusLabel"><property name="wordWrap"><bool>true</bool></property></widget></item>
-   <item><layout class="QHBoxLayout" name="buttonsLayout">
-    <item><widget class="QPushButton" name="saveButton"><property name="text"><string>Сохранить подключения</string></property></widget></item>
-    <item><widget class="QPushButton" name="cancelButton"><property name="text"><string>Отмена</string></property></widget></item>
+   <item><widget class="QLabel" name="status_label"><property name="wordWrap"><bool>true</bool></property></widget></item>
+   <item><layout class="QHBoxLayout" name="buttons_layout">
+    <item><widget class="QPushButton" name="save_button"><property name="text"><string>Сохранить подключения</string></property></widget></item>
+    <item><widget class="QPushButton" name="cancel_button"><property name="text"><string>Отмена</string></property></widget></item>
    </layout></item>
   </layout>
  </widget>
