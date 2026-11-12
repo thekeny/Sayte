@@ -3,7 +3,7 @@
  <class>NoteCard</class>
  <widget class="QWidget" name="NoteCard">
   <layout class="QVBoxLayout" name="vertical_layout">
-   <item><layout class="QHBoxLayout" name="title_layout"><item><widget class="QLabel" name="title_label"><property name="textFormat"><enum>Qt::TextFormat::PlainText</enum></property></widget></item><item><widget class="QLabel" name="pin_label"><property name="toolTip"><string>Закреплено</string></property><property name="accessibleName"><string>Закреплено</string></property></widget></item></layout></item>
+   <item><layout class="QHBoxLayout" name="title_layout" stretch="1,0"><item><widget class="QLabel" name="title_label"><property name="textFormat"><enum>Qt::TextFormat::PlainText</enum></property></widget></item><item><widget class="QLabel" name="pin_label"><property name="alignment"><set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignVCenter</set></property><property name="toolTip"><string>Закреплено</string></property><property name="accessibleName"><string>Закреплено</string></property></widget></item></layout></item>
    <item><widget class="QLabel" name="preview_label"><property name="textFormat"><enum>Qt::TextFormat::PlainText</enum></property></widget></item>
    <item><widget class="QLabel" name="tags_label"><property name="textFormat"><enum>Qt::TextFormat::PlainText</enum></property></widget></item>
   </layout>
